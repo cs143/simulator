@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "simulator", "simulator.csproj", "{90C29F41-ECC2-4D17-9938-A1334363B39A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{90C29F41-ECC2-4D17-9938-A1334363B39A}.Debug|x86.ActiveCfg = Debug|x86
+		{90C29F41-ECC2-4D17-9938-A1334363B39A}.Debug|x86.Build.0 = Debug|x86
+		{90C29F41-ECC2-4D17-9938-A1334363B39A}.Release|x86.ActiveCfg = Release|x86
+		{90C29F41-ECC2-4D17-9938-A1334363B39A}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = simulator.csproj
+		Policies = $0
+		$0.DotNetNamingPolicy = $1
+		$1.DirectoryNamespaceAssociation = None
+		$1.ResourceNamePolicy = FileFormatDefault
+		$0.TextStylePolicy = $2
+		$2.inheritsSet = null
+		$2.scope = text/x-csharp
+		$0.CSharpFormattingPolicy = $3
+		$3.IndentSwitchBody = True
+		$3.inheritsSet = Mono
+		$3.inheritsScope = text/x-csharp
+		$3.scope = text/x-csharp
+	EndGlobalSection
+EndGlobal
