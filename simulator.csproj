@@ -32,6 +32,6 @@
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <Compile Include="simulator.cs" />
+    <Compile Include="EventQueueProcessor.cs" />
   </ItemGroup>
 </Project>

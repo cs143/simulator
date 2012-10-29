@@ -1,2 +1,4 @@
 simulator.exe
 bin/
+*.userprefs
+*.pidb
