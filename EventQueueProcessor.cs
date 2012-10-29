@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Time = System.Double;
+
 public class Simulator
 {
 	private static EventQueueProcessor eqp = new EventQueueProcessor();
@@ -22,9 +24,9 @@ public class Simulator
 
 public class EventQueueProcessor
 {
-	public double current_time { get; protected set; }
-	private SortedList<double, Event> queue = new SortedList<double, Event>();
-	public void Add(double time, Event evt)
+	public Time current_time { get; protected set; }
+	private SortedList<Time, Event> queue = new SortedList<Time, Event>();
+	public void Add(Time time, Event evt)
 	{
 		queue.Add(time, evt);
 	}
@@ -33,7 +35,7 @@ public class EventQueueProcessor
 	{
 		while(queue.Count > 0)
 		{
-			var next = queue.First<KeyValuePair<double, Event>>();
+			var next = queue.First<KeyValuePair<Time, Event>>();
 			queue.RemoveAt(0);
 			current_time = next.Key;
 			Event next_event = next.Value;
