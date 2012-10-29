@@ -33,7 +33,10 @@ public class EventQueueProcessor
 		while(queue.Count > 0)
 		{
 			// @@@@pseudocode
-			(double current_time, Event next_event) = queue.RemoveHead();
+			var next = queue.First();
+			double current_time = next.Key;
+			Event next_event = next.Value;
+			IDictionary<double, Event> new_evts = next_event();
 			// Convert times in the future to absolute times.
 			queue.AddAll(mapAt(0, current_time + _, next_event()));
 		}
