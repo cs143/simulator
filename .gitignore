@@ -2,3 +2,8 @@ simulator.exe
 bin/
 *.userprefs
 *.pidb
+.DS_Store
+*.swp
+*.swo
+*.exe
+*.mdb

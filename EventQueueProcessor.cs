@@ -3,28 +3,10 @@ using System.Linq;
 
 using Time = System.Double;
 
-public class Simulator
-{
-	private static EventQueueProcessor eqp = new EventQueueProcessor();
-	static void Main()
-	{
-		eqp.Add(0.0, StupidEvent(0));
-		eqp.Execute();
-	}
-	
-	private static Event StupidEvent(int x)
-	{
-		return () => {
-			//SimulatorLog.add("Hello, world!" + x);
-			System.Console.WriteLine("Hello, world!" + x);
-			eqp.Add(eqp.current_time + 1.0, StupidEvent(x + 1));
-		};
-	}
-}
-
 public class EventQueueProcessor
 {
 	public Time current_time { get; protected set; }
+
 	private SortedList<Time, Event> queue = new SortedList<Time, Event>();
 	public void Add(Time time, Event evt)
 	{

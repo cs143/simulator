@@ -1,10 +1,10 @@
 CSC=mcs
 
-all: simulator.exe
+all: Simulator.exe
 
-simulator.exe: simulator.cs
-	$(CSC) simulator.cs
-	chmod +x simulator.exe # Mono compiler doesn't seem to set it executable
+Simulator.exe: *.cs
+	$(CSC) -debug+ -o Simulator.exe *.cs
+	chmod +x Simulator.exe # Mono compiler doesn't seem to set it executable
 
-run: simulator.exe
-	./simulator.exe
+run: Simulator.exe
+	./Simulator.exe
