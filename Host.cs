@@ -59,6 +59,12 @@ public class Host {
                                 seq_num=next_num};
         eqp.Add(eqp.current_time + ack_p.size / link.rate, link.ReceivePacket(ack_p));
     }
+
+    // TODO will remove this
+    public virtual Event SetupSend(IP ip, Int64 bits_to_send) {
+        return () => {
+        };
+    }
 }
 
 public class HostAIMDSender : Host {
@@ -72,11 +78,13 @@ public class HostAIMDSender : Host {
     public HostAIMDSender(EventQueueProcessor eqp, string name) : base(eqp, name) {
     }
 
-    public void SetupSend(IP ip, int bits_to_send) {
-        this.bits_to_send = bits_to_send;
-        this.dest_ip = ip;
-        this.window_size = 1;
-        eqp.Add(eqp.current_time, SendPacket());
+    public override Event SetupSend(IP ip, Int64 bits_to_send) {
+        return () => {
+            this.bits_to_send = bits_to_send;
+            this.dest_ip = ip;
+            this.window_size = 1;
+            eqp.Add(eqp.current_time, SendPacket());
+        };
     }
 
     public override void ProcessACKPacket(Packet packet) {

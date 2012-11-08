@@ -1,0 +1,10 @@
+C:\Users\koz\AppData\Local\Temporary Projects\simulator\bin\Debug\simulator.exe
+C:\Users\koz\AppData\Local\Temporary Projects\simulator\bin\Debug\simulator.pdb
+C:\Users\koz\AppData\Local\Temporary Projects\simulator\obj\x86\Debug\ResolveAssemblyReference.cache
+C:\Users\koz\AppData\Local\Temporary Projects\simulator\obj\x86\Debug\simulator.exe
+C:\Users\koz\AppData\Local\Temporary Projects\simulator\obj\x86\Debug\simulator.pdb
+C:\hmmbbq\simulator\obj\x86\Debug\simulator.exe
+C:\hmmbbq\simulator\obj\x86\Debug\simulator.pdb
+C:\hmmbbq\simulator\bin\Debug\simulator.exe
+C:\hmmbbq\simulator\bin\Debug\simulator.pdb
+C:\hmmbbq\simulator\obj\x86\Debug\ResolveAssemblyReference.cache
