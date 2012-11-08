@@ -1,14 +1,18 @@
+using System;
 public class Link {
     public readonly EventQueueProcessor eqp;
     public readonly Host dest;
     public readonly double rate;
     public readonly double prop_delay;
-
-    public Link(EventQueueProcessor eqp, Host dest, double rate, double prop_delay) {
+    public string name;
+    public Int64 buffer_size;
+    public Link(EventQueueProcessor eqp, string name, Host dest, double rate, double prop_delay, Int64 buffer_size) {
         this.eqp = eqp;
         this.dest = dest;
         this.rate = rate;
+        this.name = name;
         this.prop_delay = prop_delay;
+        this.buffer_size = buffer_size;
     }
 
     public Event ReceivePacket(Packet packet) {

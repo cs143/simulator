@@ -1,5 +1,5 @@
 using IP = System.Int32;
-
+using System;
 public class Host {
     private static IP next_ip = 0; // HAX
 
@@ -12,7 +12,10 @@ public class Host {
         this.eqp = eqp;
         this.name = name;
     }
-
+    public Event SetupSend(IP to_ip, Int64 bits)
+    {
+        return () => { };
+    }
     public Event SendPacket() {
         // TODO what to do about seq_num?
 

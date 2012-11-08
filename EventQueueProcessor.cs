@@ -20,7 +20,7 @@ public class EventQueueProcessor
 			var next = queue.First<KeyValuePair<Time, Event>>();
 			queue.RemoveAt(0);
 			current_time = next.Key;
-			Event next_event = next.Value;
+			Event next_event = next.Value; 
 			next_event();
 		}
 	}
