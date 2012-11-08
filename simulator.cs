@@ -34,7 +34,7 @@ public class Simulator
     public static void Init()
     {
         XmlDocument xmlDoc = new XmlDocument();
-        xmlDoc.Load("c:\\hmmbbq\\simulator\\sample.xml");
+        xmlDoc.Load("..\\..\\sample.xml");
 #region Populate Hosts
         Simulator.Hosts = new Dictionary<string, Host>();
         XmlNodeList HostList = xmlDoc.GetElementsByTagName("Host");
