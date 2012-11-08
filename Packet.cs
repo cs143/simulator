@@ -9,8 +9,11 @@ public struct Packet {
     public IP dest, src;
     public PacketType type;
     public int seq_num;
+    public double timestamp;// = -1; // Timestamp which will be used for roundtrip measurement (for convenience)
 
     public static readonly int HEADER_SIZE = 10;
+    public static readonly int DEFAULT_PAYLOAD_SIZE = 8*1024;
+    public static readonly int DEFAULT_ACK_SIZE = 8*64;
 
     public int size {
         get {
