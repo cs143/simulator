@@ -68,7 +68,7 @@ public class Host {
 }
 
 public class HostAIMDSender : Host {
-    private int bits_to_send = 0;
+    private Int64 bits_to_send = 0;
     private IP dest_ip;
     public double window_size { get; protected set; }
     private int seq_num = 0;

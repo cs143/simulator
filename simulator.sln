@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "simulator", "simulator.csproj", "{936E0747-17BF-4A17-AF91-ADB4345E412C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimGrapher", "SimGrapher\SimGrapher.csproj", "{C129B059-F7B7-4287-8429-D4D3C32FCE12}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -13,6 +15,10 @@ Global
 		{936E0747-17BF-4A17-AF91-ADB4345E412C}.Debug|x86.Build.0 = Debug|x86
 		{936E0747-17BF-4A17-AF91-ADB4345E412C}.Release|x86.ActiveCfg = Release|x86
 		{936E0747-17BF-4A17-AF91-ADB4345E412C}.Release|x86.Build.0 = Release|x86
+		{C129B059-F7B7-4287-8429-D4D3C32FCE12}.Debug|x86.ActiveCfg = Debug|x86
+		{C129B059-F7B7-4287-8429-D4D3C32FCE12}.Debug|x86.Build.0 = Debug|x86
+		{C129B059-F7B7-4287-8429-D4D3C32FCE12}.Release|x86.ActiveCfg = Release|x86
+		{C129B059-F7B7-4287-8429-D4D3C32FCE12}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

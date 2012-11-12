@@ -1,0 +1,70 @@
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\obj\x86\Debug\ResolveAssemblyReference.cache
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\obj\x86\Debug\SimGrapher.GraphWindow.resources
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\obj\x86\Debug\WindowsFormsApplication1.Properties.Resources.resources
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\obj\x86\Debug\GenerateResource.read.1.tlog
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\obj\x86\Debug\GenerateResource.write.1.tlog
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\obj\x86\Debug\WindowsFormsApplication1.exe
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\bin\Debug\WindowsFormsApplication1.exe
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\bin\Debug\WindowsFormsApplication1.pdb
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\bin\Debug\ZedGraph.dll
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\bin\Debug\ZedGraph.xml
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\bin\Debug\de\ZedGraph.resources.dll
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\bin\Debug\es\ZedGraph.resources.dll
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\bin\Debug\fr\ZedGraph.resources.dll
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\bin\Debug\hu\ZedGraph.resources.dll
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\bin\Debug\it\ZedGraph.resources.dll
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\bin\Debug\ja\ZedGraph.resources.dll
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\bin\Debug\pt\ZedGraph.resources.dll
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\bin\Debug\ru\ZedGraph.resources.dll
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\bin\Debug\sk\ZedGraph.resources.dll
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\bin\Debug\sv\ZedGraph.resources.dll
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\bin\Debug\tr\ZedGraph.resources.dll
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\bin\Debug\zh-cn\ZedGraph.resources.dll
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\bin\Debug\zh-tw\ZedGraph.resources.dll
+C:\Users\koz\AppData\Local\Temporary Projects\WindowsFormsApplication1\obj\x86\Debug\WindowsFormsApplication1.pdb
+\\files.caltech.edu\koz\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\SimGrapher.exe
+\\files.caltech.edu\koz\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\SimGrapher.pdb
+\\files.caltech.edu\koz\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\ZedGraph.xml
+\\files.caltech.edu\koz\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\de\ZedGraph.resources.dll
+\\files.caltech.edu\koz\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\es\ZedGraph.resources.dll
+\\files.caltech.edu\koz\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\fr\ZedGraph.resources.dll
+\\files.caltech.edu\koz\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\hu\ZedGraph.resources.dll
+\\files.caltech.edu\koz\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\it\ZedGraph.resources.dll
+\\files.caltech.edu\koz\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\ja\ZedGraph.resources.dll
+\\files.caltech.edu\koz\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\pt\ZedGraph.resources.dll
+\\files.caltech.edu\koz\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\ru\ZedGraph.resources.dll
+\\files.caltech.edu\koz\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\sk\ZedGraph.resources.dll
+\\files.caltech.edu\koz\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\sv\ZedGraph.resources.dll
+\\files.caltech.edu\koz\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\tr\ZedGraph.resources.dll
+\\files.caltech.edu\koz\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\zh-cn\ZedGraph.resources.dll
+\\files.caltech.edu\koz\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\zh-tw\ZedGraph.resources.dll
+\\files.caltech.edu\koz\Desktop\Hmmbbq\simulator\SimGrapher\obj\x86\Debug\ResolveAssemblyReference.cache
+\\files.caltech.edu\koz\Desktop\Hmmbbq\simulator\SimGrapher\obj\x86\Debug\SimGrapher.GraphWindow.resources
+\\files.caltech.edu\koz\Desktop\Hmmbbq\simulator\SimGrapher\obj\x86\Debug\WindowsFormsApplication1.Properties.Resources.resources
+\\files.caltech.edu\koz\Desktop\Hmmbbq\simulator\SimGrapher\obj\x86\Debug\GenerateResource.read.1.tlog
+\\files.caltech.edu\koz\Desktop\Hmmbbq\simulator\SimGrapher\obj\x86\Debug\GenerateResource.write.1.tlog
+\\files.caltech.edu\koz\Desktop\Hmmbbq\simulator\SimGrapher\obj\x86\Debug\SimGrapher.exe
+\\files.caltech.edu\koz\Desktop\Hmmbbq\simulator\SimGrapher\obj\x86\Debug\SimGrapher.pdb
+N:\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\SimGrapher.exe
+N:\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\SimGrapher.pdb
+N:\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\ZedGraph.xml
+N:\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\de\ZedGraph.resources.dll
+N:\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\es\ZedGraph.resources.dll
+N:\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\fr\ZedGraph.resources.dll
+N:\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\hu\ZedGraph.resources.dll
+N:\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\it\ZedGraph.resources.dll
+N:\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\ja\ZedGraph.resources.dll
+N:\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\pt\ZedGraph.resources.dll
+N:\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\ru\ZedGraph.resources.dll
+N:\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\sk\ZedGraph.resources.dll
+N:\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\sv\ZedGraph.resources.dll
+N:\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\tr\ZedGraph.resources.dll
+N:\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\zh-cn\ZedGraph.resources.dll
+N:\Desktop\Hmmbbq\simulator\SimGrapher\bin\Debug\zh-tw\ZedGraph.resources.dll
+N:\Desktop\Hmmbbq\simulator\SimGrapher\obj\x86\Debug\ResolveAssemblyReference.cache
+N:\Desktop\Hmmbbq\simulator\SimGrapher\obj\x86\Debug\SimGrapher.GraphWindow.resources
+N:\Desktop\Hmmbbq\simulator\SimGrapher\obj\x86\Debug\WindowsFormsApplication1.Properties.Resources.resources
+N:\Desktop\Hmmbbq\simulator\SimGrapher\obj\x86\Debug\GenerateResource.read.1.tlog
+N:\Desktop\Hmmbbq\simulator\SimGrapher\obj\x86\Debug\GenerateResource.write.1.tlog
+N:\Desktop\Hmmbbq\simulator\SimGrapher\obj\x86\Debug\SimGrapher.exe
+N:\Desktop\Hmmbbq\simulator\SimGrapher\obj\x86\Debug\SimGrapher.pdb
