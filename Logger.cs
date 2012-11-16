@@ -7,22 +7,35 @@ using System.IO;
 using System.Xml.Serialization;
 namespace simulator
 {
-    class Logger
+    public class LogCreator<EntryType>
     {
-        public static void LogHostStatus(HostStatus hStat)
+        public void LogEntry(EntryType entry)
         {
-            XmlSerializer xml = new XmlSerializer(typeof(HostStatus));
+            XmlSerializer xml = new XmlSerializer(typeof(EntryType));
             XmlWriterSettings settings = new XmlWriterSettings();
             settings.Indent = true;
             settings.OmitXmlDeclaration = true;
             XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
 
             //  Add lib namespace with empty prefix
-            ns.Add("",""); 
+            ns.Add("", "");
             StreamWriter sw = File.AppendText(Simulator.LogFilePath);
             XmlWriter xw = XmlWriter.Create(sw, settings);
-            xml.Serialize(xw, hStat,ns);
+            xml.Serialize(xw, entry, ns);
             sw.Close();
+        }
+    }
+    class Logger
+    {
+        public static void LogHostStatus(HostStatus hStat)
+        {
+            LogCreator<HostStatus> lc = new LogCreator<HostStatus>();
+            lc.LogEntry(hStat);
+        }
+        public static void LogLinkStatus(LinkStatus lStat)
+        {
+            LogCreator<LinkStatus> lc = new LogCreator<LinkStatus>();
+            lc.LogEntry(lStat);
         }
         public static void InitLogFile()
         {
@@ -35,7 +48,6 @@ namespace simulator
             }	
 
         }
-
         public static void CloseLogFile()
         {
             string path = Simulator.LogFilePath;
@@ -63,6 +75,18 @@ namespace simulator
                 }
                 LogHostStatus(hStat);
             }
+            Int64 dropped_packets=10;
+            for (int j = 0; j < 100; j++)
+            {
+                for (int k = 0; k < 6; k++)
+                {
+                    LinkStatus lStat = new LinkStatus();
+                    lStat.link_name = "L" + k;
+                    lStat.dropped_packets = k*(dropped_packets++);
+                    lStat.time = j;
+                    LogLinkStatus(lStat);
+                }
+            }
         }
     }
     public struct FlowStatus
@@ -79,5 +103,14 @@ namespace simulator
         [XmlAttribute]
         public string host_name;
         public FlowStatus[] flows;
+    }
+    public struct LinkStatus
+    {
+        [XmlAttribute]
+        public string link_name;
+        [XmlAttribute]
+        public Int64 time;
+        [XmlElement]
+        public Int64 dropped_packets;
     }
 }

@@ -36,7 +36,7 @@ namespace simulator
 
             //eqp.Add(0.0, host1.SendPacket());
             eqp.Execute();
-            //Logger.TestLogging();
+            Logger.TestLogging();
             Logger.CloseLogFile();
         }
         public static void Init()
