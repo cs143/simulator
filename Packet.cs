@@ -10,7 +10,8 @@ public enum PacketType {
 
 public struct Packet {
     public int payload_size;
-    public IP dest, src;
+    public IP dest;
+    public IP src;
     public PacketType type;
     public int seq_num;
     public double timestamp;// = -1; // Timestamp which will be used for roundtrip measurement (for convenience)

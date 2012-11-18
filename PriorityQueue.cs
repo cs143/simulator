@@ -48,14 +48,14 @@ public class PriorityQueue<P, T>
             {
                 Queue<PriorityItem<P, T>> NewQueue = new Queue<PriorityItem<P, T>>();
                 NewQueue.Enqueue(new PriorityItem<P, T>(priority, data));
-                _queues.Insert(qLo, NewQueue);
+                _queues.Insert(qLo+1, NewQueue);
                 return;
             }
             else if (_queues[qLo].Peek().Priority.CompareTo(priority) > 0)
             {
                 Queue<PriorityItem<P, T>> NewQueue = new Queue<PriorityItem<P, T>>();
                 NewQueue.Enqueue(new PriorityItem<P, T>(priority, data));
-                _queues.Insert(qLo + 1, NewQueue);
+                _queues.Insert(qLo, NewQueue);
                 return;
             }
             else
@@ -72,13 +72,15 @@ public class PriorityQueue<P, T>
             if (_queues[qMid].Peek().Priority.CompareTo(priority) < 0)
             {
                 // This item belongs in the upper half of the range
-                QueueInsert(priority, data, qLo, qMid);
+                //QueueInsert(priority, data, qLo, qMid);
+                QueueInsert(priority, data, qMid+1, qHi);
                 return;
             }
             else if (_queues[qMid].Peek().Priority.CompareTo(priority) > 0)
             {
                 // This item belongs in the lower half of the range
-                QueueInsert(priority, data, qMid + 1, qHi);
+                //QueueInsert(priority, data, qMid + 1, qHi);
+                QueueInsert(priority, data, qLo, qMid);
                 return;
             }
             else

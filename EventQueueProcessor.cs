@@ -12,6 +12,7 @@ public class EventQueueProcessor
     private PriorityQueue<Time, Event> queue = new PriorityQueue<Time, Event>();
     public void Add(Time time, Event evt)
     {
+//System.Console.WriteLine("QUEUING: "+ time + " AT " + current_time);
         queue.Enqueue(time, evt);
     }
 
@@ -22,6 +23,7 @@ public class EventQueueProcessor
         {
             var next = queue.DequeuePriorityItem();
             current_time = next.Priority;
+//System.Console.WriteLine("TIME:"+ current_time);
             Event next_event = next.Data;
             next_event();
         }
