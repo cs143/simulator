@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using MoreLinq;
 
 // TODO replace with real node class
 using Node = simulator.Host;
@@ -27,7 +28,7 @@ public class Router
     /// </summary>
     public Event ReceivePacket(Packet packet) {
         return () => {
-            Node next = routing_table[packet.dest];
+            Node next = routing_table[Simulator.Nodes[packet.dest]];
             Link to_next = Simulator.LinksBySrcDest[Tuple.Create(this, next)];
             throw new NotImplementedException("TODO Call Node method that forwards packet on out-link");
         };
@@ -38,21 +39,21 @@ public class Router
     /// Calculates the shortest path to every other node in the network.
     /// The implementation uses Dijkstra's algorithm, for use in a link-state routing protocol.
     /// </summary>
-    private IDictionary<Node, Node?> CalculateShortestPaths() {
+    private IDictionary<Node, Node> CalculateShortestPaths() {
         var nodes = Simulator.Hosts.Values;	// TODO all nodes rather than hosts
         /// Best known distance (sum of costs) from this to each node
         IDictionary<Node, double> dist = nodes.ToDictionary(node => node, _ => Double.PositiveInfinity);
         /// Predecessor of each node in shortest-paths tree
-        IDictionary<Node, Node?> previous = nodes.ToDictionary(node => node, _ => null);
+        IDictionary<Node, Node> previous = nodes.ToDictionary(node => node, _ => null);
         
         dist[this] = 0;
         /// Nodes that have yet to be processed
         ISet<Node> queue = new HashSet<Node>(nodes); // TODO Priority queue would be faster; replace if needed
         
         while(queue.Count > 0) {
-            Node u = queue.Min(node => dist[node]);
+            Node u = queue.MinBy(node => dist[node]);
             queue.Remove(u);
-            if(dist[nodes] == Double.PositiveInfinity)
+            if(dist[u] == Double.PositiveInfinity)
                 break; // remaining nodes are inaccessible
             
             foreach(Node v /*out-neighbor of u*/in queue
@@ -74,7 +75,7 @@ public class Router
     /// <returns>
     /// The first hop on the shortest path from <paramref name="this"/> to <paramref name="dest"/> in the <paramref name="shortest_paths_tree"/>
     /// </returns>
-    private Node FirstHopOnShortestPath(Node dest, IDictionary<Node, Node?> shortest_paths_tree) {
+    private Node FirstHopOnShortestPath(Node dest, IDictionary<Node, Node> shortest_paths_tree) {
         if(dest == this)
             throw new ArgumentException("There is no next hop for a packet destined for this router.", "this");
         Node predecessor = shortest_paths_tree[dest];
@@ -86,7 +87,7 @@ public class Router
     /// </summary>
     private void RecalculateRoutingTable() {
         var shortest_paths_tree = CalculateShortestPaths();
-        routing_table = shortest_paths_tree
+        routing_table = shortest_paths_tree.Values
             .Where(n => n != this)
             .Select(n => this.FirstHopOnShortestPath(n, shortest_paths_tree));
     }
