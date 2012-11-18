@@ -36,7 +36,9 @@ namespace simulator
 
             //eqp.Add(0.0, host1.SendPacket());
             eqp.Execute();
-            Logger.TestLogging();
+            //Logger.TestLogging();
+            Console.WriteLine("Press enter to continue => ");
+            Console.ReadLine();
             Logger.CloseLogFile();
         }
         public static void Init()
@@ -53,8 +55,14 @@ namespace simulator
             {
                 string hostName = hostNode.Attributes["name"].Value;
                 Console.WriteLine(hostName);
-                Simulator.Hosts.Add(hostName, new Host(eqp, hostName));
-
+                if (hostName != "Host1")
+                {
+                    Simulator.Hosts.Add(hostName, new Host(eqp, hostName));
+                }
+                else
+                {
+                    Simulator.Hosts.Add(hostName, new HostAIMDSender(eqp, hostName));
+                }
             }
             #endregion
             #region Populate Routers
@@ -98,6 +106,8 @@ namespace simulator
                 Host flow_to_host = Simulator.Hosts[flow_node.Attributes["to"].Value];
                 eqp.Add(Convert.ToDouble(flow_node.Attributes["start_time"].Value),
                 flow_from_host.SetupSend(flow_to_host.ip, Convert.ToInt64(flow_node.Attributes["pkt_count"].Value)));
+                flow_from_host.hStat.flows[0].flow_name = flow_name;
+                flow_to_host.flow_rec_stat.flow_name = flow_name;
                 Console.WriteLine(flow_name);
             }
             #endregion

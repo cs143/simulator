@@ -10,10 +10,15 @@ public class Host {
     public readonly IP ip = Host.next_ip++;
     public readonly string name;
     public Link link { get; set; }
+    public FlowReceive flow_rec_stat = new FlowReceive();
+    public HostStatus hStat = new HostStatus();
 
     public Host(EventQueueProcessor eqp, string name) {
         this.eqp = eqp;
         this.name = name;
+        this.hStat.host_name = name;
+        this.hStat.flows = new FlowStatus[1];
+        this.hStat.flows[0] = new FlowStatus();
     }
 
     public virtual Event SendPacket() {
@@ -55,6 +60,9 @@ public class Host {
         if (packet.seq_num == next_num) {
             next_num++;
         }
+        flow_rec_stat.time = eqp.current_time;
+        flow_rec_stat.received_packets++;
+        Logger.LogFlowRecStatus(flow_rec_stat);
         var ack_p = new Packet{payload_size=Packet.DEFAULT_ACK_SIZE,
                                 dest=link.dest.ip,
                                 type=PacketType.ACK,
@@ -126,6 +134,9 @@ public class HostAIMDSender : Host {
         // if HasPacketsToSend() == false, it will be idempotent
         eqp.Add(completion_time, SendPacket());
         eqp.Add(completion_time + this.roundtrip_est, CheckTimeout(packet));
+        hStat.flows[0].time = eqp.current_time;
+        hStat.flows[0].window_size = window_size;
+        Logger.LogHostStatus(hStat);
     }
 
     public Event CheckTimeout(Packet packet) {

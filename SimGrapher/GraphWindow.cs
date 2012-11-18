@@ -83,14 +83,14 @@ namespace SimGrapher
                 list[count].link_rate_list = new PointPairList();
                 Int64 lastDpCount = 0;
                 Int64 lastDelCount = 0;
-                double dropped_packet_rate = 0;
-                double link_rate = 0;
                 for (int j = 0; j < 100; j++)
                 {
-                    
+
+                    double dropped_packet_rate = 0;
+                    double link_rate = 0;
                     double startTime = j * TimeInterval;
                     double endTime = (j + 1) * TimeInterval;
-                        var dPackItem = (from item in xmlDoc.Descendants("LinkStatus")
+                        var dPackItem = from item in xmlDoc.Descendants("LinkStatus")
                                          where item.Attribute("link_name").Value == link
                                          && Convert.ToDouble(item.Attribute("time").Value) <= endTime
                                          && Convert.ToDouble(item.Attribute("time").Value) >= startTime
@@ -100,14 +100,15 @@ namespace SimGrapher
                                              time = item.Attribute("time").Value,
                                              dp_count = item.Descendants("dropped_packets").First().Value,
                                              lr_count = item.Descendants("delivered_packets").First().Value
-                                         }).Last();
-                    if (dPackItem!=null)
+                                         };
+                    if (dPackItem.Count()>0)
                     {
-                        Int64 realDpCount = Convert.ToInt64(dPackItem.dp_count);
-                        dropped_packet_rate = (realDpCount - lastDpCount) * 1000 / TimeInterval;
+                        var crappyDPackItem = dPackItem.Last();
+                        Int64 realDpCount = Convert.ToInt64(crappyDPackItem.dp_count);
+                        dropped_packet_rate = (realDpCount - lastDpCount) / TimeInterval;
                         lastDpCount = realDpCount;
-                        Int64 realDelCount = Convert.ToInt64(dPackItem.lr_count);
-                        link_rate = (realDelCount - lastDelCount) * 1000 / TimeInterval;
+                        Int64 realDelCount = Convert.ToInt64(crappyDPackItem.lr_count);
+                        link_rate = (realDelCount - lastDelCount)  / TimeInterval;
                         lastDelCount = realDelCount;
                     }
                     list[count].droppedPacketList.Add((j + 1) * TimeInterval, dropped_packet_rate);
@@ -142,26 +143,27 @@ namespace SimGrapher
                                  };
                 list[count].flow_rate_list = new PointPairList();
                 Int64 lastRecCount = 0;
-                double flow_rate = 0;
                 for (int j = 0; j < 100; j++)
                 {
 
+                    double flow_rate = 0;
                     double startTime = j * TimeInterval;
                     double endTime = (j + 1) * TimeInterval;
-                    var rec_item = (from item in xmlDoc.Descendants("FlowReceive")
-                                     where item.Attribute("flow_name").Value == flow
-                                     && Convert.ToDouble(item.Attribute("time").Value) <= endTime
-                                     && Convert.ToDouble(item.Attribute("time").Value) >= startTime
-                                     orderby (double)item.Attribute("time")
-                                     select new
-                                     {
-                                         time = item.Attribute("time").Value,
-                                         rec_count = item.Descendants("received_packets").First().Value,
-                                     }).Last();
-                    if (rec_item != null)
+                    var rec_item = from item in xmlDoc.Descendants("FlowReceive")
+                                   where item.Attribute("flow_name").Value == flow
+                                   && Convert.ToDouble(item.Attribute("time").Value) <= endTime
+                                   && Convert.ToDouble(item.Attribute("time").Value) >= startTime
+                                   orderby (double)item.Attribute("time")
+                                   select new
+                                   {
+                                       time = item.Attribute("time").Value,
+                                       rec_count = item.Descendants("received_packets").First().Value,
+                                   };
+                    if (rec_item.Count()>0)
                     {
-                        Int64 realRecCount = Convert.ToInt64(rec_item.rec_count);
-                        flow_rate = (realRecCount - lastRecCount) * 1000 / TimeInterval;
+                        var crappyRecItem = rec_item.Last();
+                        Int64 realRecCount = Convert.ToInt64(crappyRecItem.rec_count);
+                        flow_rate = (realRecCount - lastRecCount)  / TimeInterval;
                         lastRecCount = realRecCount;
                     }
                     list[count].flow_rate_list.Add((j + 1) * TimeInterval, flow_rate);

@@ -14,6 +14,7 @@ public class Link {
     public readonly double prop_delay;
     public string name;
     public Int64 buffer_size;
+    public LinkStatus lStatus = new LinkStatus();
     public Link(EventQueueProcessor eqp, string name, Host dest, double rate, double prop_delay, Int64 buffer_size) {
         this.eqp = eqp;
         this.dest = dest;
@@ -21,6 +22,10 @@ public class Link {
         this.name = name;
         this.prop_delay = prop_delay;
         this.buffer_size = buffer_size;
+        this.lStatus.link_name = name;
+        this.lStatus.dropped_packets = 0;
+        this.lStatus.buffer_size = 0;
+        this.lStatus.delivered_packets = 0;
     }
     
     /// <summary>
@@ -29,6 +34,9 @@ public class Link {
     public Event ReceivePacket(Packet packet) {
         return () => {
             eqp.Add(eqp.current_time+prop_delay, dest.ReceivePacket(packet));
+            this.lStatus.delivered_packets++;
+            this.lStatus.time = eqp.current_time;
+            Logger.LogLinkStatus(lStatus);
         };
     }
 

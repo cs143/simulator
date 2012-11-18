@@ -56,7 +56,7 @@ namespace simulator
         public static void CloseLogFile()
         {
             
-                asw.WriteLine("<TotalTime>100</TotalTime>");
+                asw.WriteLine("<TotalTime>35</TotalTime>");
                 asw.WriteLine("</Logging>");
                 asw.Close();
         }
@@ -105,16 +105,16 @@ namespace simulator
         [XmlAttribute]
         public string flow_name;
         [XmlAttribute]
-        public Int64 window_size;//0 if flow has not started
+        public double window_size;//0 if flow has not started
         [XmlAttribute]
-        public Int64 time;
+        public double time;
     }
     public struct FlowReceive
     {
         [XmlAttribute]
         public string flow_name;
         [XmlAttribute]
-        public Int64 time;
+        public double time;
         [XmlElement]
         public Int64 received_packets;
     }
@@ -130,7 +130,7 @@ namespace simulator
         [XmlAttribute]
         public string link_name;
         [XmlAttribute]
-        public Int64 time;
+        public double time;
         [XmlElement]
         public Int64 dropped_packets;
         [XmlElement]
