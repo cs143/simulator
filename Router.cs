@@ -15,18 +15,21 @@ public class Router
     /// <summary>
     /// Routing table: maps a destination to the next hop for packet destined therefor.
     /// </summary>
-    private IDictionary<Host, Router> routing_table;
+    private IDictionary<Host, Node> routing_table;
     public Router(string name)
     {
         this.Name = name;
     }
     
     /// <summary>
-    /// Event that router @@@@@@
+    /// Event that router receives a packet.
+    /// The router will immediately perform a routing-table lookup, and forward the packet along the appropriate link.
     /// </summary>
     public Event ReceivePacket(Packet packet) {
         return () => {
-            // TODO
+            Node next = routing_table[packet.dest];
+            Link to_next = Simulator.LinksBySrcDest[Tuple.Create(this, next)];
+            throw new NotImplementedException("TODO Call Node method that forwards packet on out-link");
         };
     }
     
