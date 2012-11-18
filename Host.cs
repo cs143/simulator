@@ -1,6 +1,8 @@
 using IP = System.Int32;
 using System;
 
+namespace simulator {
+
 public class Host {
     private static IP next_ip = 0; // HAX
 
@@ -145,4 +147,6 @@ public class HostAIMDSender : Host {
 public class HostReceiver : Host {
     public HostReceiver(EventQueueProcessor eqp, string name) : base(eqp, name) {
     }
+}
+
 }
