@@ -12,7 +12,10 @@ namespace simulator
 public class Router
 {
     string Name;
-    private readonly IDictionary<Host, Router> routing_table = new Dictionary<Host, Router>();
+    /// <summary>
+    /// Routing table: maps a destination to the next hop for packet destined therefor.
+    /// </summary>
+    private IDictionary<Host, Router> routing_table;
     public Router(string name)
     {
         this.Name = name;
@@ -65,8 +68,24 @@ public class Router
         return previous;
     }
     
+    /// <returns>
+    /// The first hop on the shortest path from <paramref name="this"/> to <paramref name="dest"/> in the <paramref name="shortest_paths_tree"/>
+    /// </returns>
+    private Node FirstHopOnShortestPath(Node dest, IDictionary<Node, Node?> shortest_paths_tree) {
+        if(dest == this)
+            throw new ArgumentException("There is no next hop for a packet destined for this router.", "this");
+        Node predecessor = shortest_paths_tree[dest];
+        return predecessor == this ? dest : FirstHopOnShortestPath(predecessor, shortest_paths_tree);
+    }
+    
+    /// <summary>
+    /// Recalculates the routing table.
+    /// </summary>
     private void RecalculateRoutingTable() {
-        // TODO
+        var shortest_paths_tree = CalculateShortestPaths();
+        routing_table = shortest_paths_tree
+            .Where(n => n != this)
+            .Select(n => this.FirstHopOnShortestPath(n, shortest_paths_tree));
     }
 }
 
