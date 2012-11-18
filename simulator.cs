@@ -23,6 +23,7 @@ namespace simulator
         static EventQueueProcessor eqp = new EventQueueProcessor();
         public static Dictionary<string, Host> Hosts;
         public static Dictionary<string, Link> Links;
+        public static Dictionary<Tuple<Host, Host>, Link> LinksBySrcDest;
         public static Dictionary<string, simulator.Router> Routers;
         public static string LogFilePath = "";
         static void Main()
@@ -68,6 +69,8 @@ namespace simulator
             }
             #endregion
             #region Populate Links
+            Simulator.Links = new Dictionary<string, Link>();
+            Simulator.LinksBySrcDest = new Dictionary<Tuple<Host, Host>, Link>();
             XmlNodeList link_list = xmlDoc.GetElementsByTagName("Link");
             foreach (XmlNode link_node in link_list)
             {
@@ -86,6 +89,12 @@ namespace simulator
                     Convert.ToDouble(link_node.Attributes["prop_delay"].Value),
                     Convert.ToInt64(link_node.Attributes["buffer_size"].Value));
                 to_host.link = reverse_link;
+                
+                Simulator.Links.Add(forward_link.name, forward_link);
+                Simulator.Links.Add(reverse_link.name, reverse_link);
+                Simulator.LinksBySrcDest.Add(Tuple.Create(from_host, to_host), forward_link);
+                Simulator.LinksBySrcDest.Add(Tuple.Create(to_host, from_host), reverse_link);
+                
                 Console.WriteLine(link_name);
             }
             #endregion
