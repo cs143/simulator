@@ -45,7 +45,7 @@ namespace simulator
                 sw.WriteLine("<?xml version=\"1.0\" ?>");
                 sw.WriteLine("<Logging>");
                 sw.Close();
-            }	
+            }
 
         }
         public static void CloseLogFile()
