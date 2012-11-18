@@ -72,14 +72,12 @@ public class PriorityQueue<P, T>
             if (_queues[qMid].Peek().Priority.CompareTo(priority) < 0)
             {
                 // This item belongs in the upper half of the range
-                //QueueInsert(priority, data, qLo, qMid);
                 QueueInsert(priority, data, qMid+1, qHi);
                 return;
             }
             else if (_queues[qMid].Peek().Priority.CompareTo(priority) > 0)
             {
                 // This item belongs in the lower half of the range
-                //QueueInsert(priority, data, qMid + 1, qHi);
                 QueueInsert(priority, data, qLo, qMid);
                 return;
             }

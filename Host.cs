@@ -13,6 +13,8 @@ public class Host {
     public readonly string name;
     public Link link { get; set; }
     private int expected_seq_num = 0; // seq number for the next packet
+    public FlowReceive flow_rec_stat = new FlowReceive();
+    public HostStatus hStat = new HostStatus();
 
     // SENDER SPECIFIC
     public double window_size { get; protected set; }
@@ -28,6 +30,9 @@ public class Host {
     public Host(EventQueueProcessor eqp, string name) {
         this.eqp = eqp;
         this.name = name;
+        this.hStat.host_name = name;
+        this.hStat.flows = new FlowStatus[1];
+        this.hStat.flows[0] = new FlowStatus();
     }
     Random r = new Random();
 
@@ -37,11 +42,7 @@ public class Host {
             if (packet.type == PacketType.ACK) {
                 ProcessACKPacket(packet);
             } else {
-                if (r.Next(0, 10) != 0) {
-                    ProcessDataPacket(packet);
-                } else {
-                    Console.WriteLine("GOING TO DROP " + packet);
-                }
+                ProcessDataPacket(packet);
             }
         };
     }
@@ -95,6 +96,9 @@ public class Host {
         // if HasPacketsToSend() == false, it will be idempotent
         eqp.Add(completion_time, SendPacket());
         eqp.Add(completion_time + this.roundtrip_est, CheckTimeout(packet));
+        hStat.flows[0].time = eqp.current_time;
+        hStat.flows[0].window_size = window_size;
+        Logger.LogHostStatus(hStat);
     }
 
     private void ProcessDataPacket(Packet packet) {

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-
+using System.IO;
+using System.ComponentModel;
+using System;
 using Time = System.Double;
 
 namespace simulator {
@@ -26,6 +28,7 @@ public class EventQueueProcessor
 //System.Console.WriteLine("TIME:"+ current_time);
             Event next_event = next.Data;
             next_event();
+            Console.WriteLine("time " + current_time);
         }
     }
 }
