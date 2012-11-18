@@ -1,4 +1,8 @@
 using IP = System.Int32;
+
+namespace simulator
+{
+
 // TCP
 public enum PacketType {
     ACK, DATA
@@ -24,4 +28,6 @@ public struct Packet {
     public override string ToString() {
         return string.Format("<Packet size={0} dest={1} src={2} type={3} seq_num={4}>", size, dest, src, type, seq_num);
     }
+}
+
 }
