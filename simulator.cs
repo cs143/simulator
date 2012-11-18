@@ -104,7 +104,9 @@ namespace simulator
             LogFilePath = xmlDoc.GetElementsByTagName("LogFilePath")[0].Attributes["path"].Value;
             Console.WriteLine("Log File Path = " + LogFilePath);
             Logger.InitLogFile();
+            Console.WriteLine("Press enter to continue => ");
             Console.ReadLine();
+
         }
         private static Event StupidEvent(int x)
         {

@@ -19,14 +19,13 @@ namespace simulator
 
             //  Add lib namespace with empty prefix
             ns.Add("", "");
-            StreamWriter sw = File.AppendText(Simulator.LogFilePath);
-            XmlWriter xw = XmlWriter.Create(sw, settings);
+            XmlWriter xw = XmlWriter.Create(Logger.asw, settings);
             xml.Serialize(xw, entry, ns);
-            sw.Close();
         }
     }
     class Logger
     {
+        public static StreamWriter asw;
         public static void LogHostStatus(HostStatus hStat)
         {
             LogCreator<HostStatus> lc = new LogCreator<HostStatus>();
@@ -37,6 +36,11 @@ namespace simulator
             LogCreator<LinkStatus> lc = new LogCreator<LinkStatus>();
             lc.LogEntry(lStat);
         }
+        public static void LogFlowRecStatus(FlowReceive frStat)
+        {
+            LogCreator<FlowReceive> lc = new LogCreator<FlowReceive>();
+            lc.LogEntry(frStat);
+        }
         public static void InitLogFile()
         {
             string path = Simulator.LogFilePath;
@@ -45,18 +49,16 @@ namespace simulator
                 sw.WriteLine("<?xml version=\"1.0\" ?>");
                 sw.WriteLine("<Logging>");
                 sw.Close();
+                asw = File.AppendText(path);
             }	
 
         }
         public static void CloseLogFile()
         {
-            string path = Simulator.LogFilePath;
-            using (StreamWriter sw = File.AppendText(path))
-            {
-                sw.WriteLine("<TotalTime>100</TotalTime>");
-                sw.WriteLine("</Logging>");
-                sw.Close();
-            }
+            
+                asw.WriteLine("<TotalTime>100</TotalTime>");
+                asw.WriteLine("</Logging>");
+                asw.Close();
         }
         public static void TestLogging()
         {
@@ -76,17 +78,25 @@ namespace simulator
                 }
                 LogHostStatus(hStat);
             }
-            Int64 dropped_packets=10;
-            for (int j = 0; j < 100; j++)
+            Int64 dropped_packets=1;
+            for (int j = 1; j < 101; j++)
             {
                 for (int k = 0; k < 6; k++)
                 {
                     LinkStatus lStat = new LinkStatus();
-                    lStat.link_name = "L" + k;
-                    lStat.dropped_packets = k*(dropped_packets++);
+                    lStat.link_name = "L" + (k+1);
+                    lStat.dropped_packets = k*dropped_packets;
+                    lStat.buffer_size = k * dropped_packets;
+                    lStat.delivered_packets = k * dropped_packets;
                     lStat.time = j;
                     LogLinkStatus(lStat);
+                    FlowReceive frStat = new FlowReceive();
+                    frStat.flow_name = "Flow" + (k + 1);
+                    frStat.time = j;
+                    frStat.received_packets = k * dropped_packets;
+                    LogFlowRecStatus(frStat);
                 }
+                dropped_packets++;
             }
         }
     }
@@ -99,6 +109,16 @@ namespace simulator
         [XmlAttribute]
         public Int64 time;
     }
+    public struct FlowReceive
+    {
+        [XmlAttribute]
+        public string flow_name;
+        [XmlAttribute]
+        public Int64 time;
+        [XmlElement]
+        public Int64 received_packets;
+    }
+
     public struct HostStatus
     {
         [XmlAttribute]
@@ -113,5 +133,9 @@ namespace simulator
         public Int64 time;
         [XmlElement]
         public Int64 dropped_packets;
+        [XmlElement]
+        public Int64 buffer_size;
+        [XmlElement]
+        public Int64 delivered_packets;
     }
 }
