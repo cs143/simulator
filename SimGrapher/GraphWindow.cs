@@ -17,6 +17,11 @@ namespace SimGrapher
         public string name;
         public PointPairList plist;
     }
+    public struct Link
+    {
+        public string name;
+        public PointPairList droppedPacketList;
+    }
     public partial class GraphWindow : Form
     {
         public GraphWindow()
@@ -30,8 +35,53 @@ namespace SimGrapher
             oDlg.Title = "Select simulator log file";
             oDlg.ShowDialog();
             XDocument xmlDoc =  XDocument.Load(oDlg.FileName);
-           Flow[] wSizeList = GetWSizeList(xmlDoc);
+            Flow[] wSizeList = GetWSizeList(xmlDoc);
             CreateWindowSizeChart(zedGraphControl1,wSizeList);
+            Link[] linkStatList = GetLinkStatusList(xmlDoc);
+            CreateDroppedPacketChart(zedGraphControl2, linkStatList);
+        }
+        public Link[] GetLinkStatusList(XDocument xmlDoc)
+        {
+            var linkList = (from item in xmlDoc.Descendants("LinkStatus")
+                            select item.Attribute("link_name").Value
+                 ).Distinct();
+            Link[] list = new Link[linkList.Count()];
+            int count = 0;
+            double TotTime = Convert.ToDouble(xmlDoc.Descendants("TotalTime").First().Value);
+            double TimeInterval = TotTime / 100;
+            foreach (var link in linkList)
+            {
+                list[count] = new Link();
+                list[count].name = link;
+                list[count].droppedPacketList = new PointPairList();
+                Int64 lastDpCount = 0;
+                double rate = 0;
+                for (int j = 0; j < 100; j++)
+                {
+                    double startTime = j * TimeInterval;
+                    double endTime = (j + 1) * TimeInterval;
+                    var dPackItem = (from item in xmlDoc.Descendants("LinkStatus")
+                                     where item.Attribute("link_name").Value == link
+                                     && Convert.ToDouble(item.Attribute("time").Value) <= endTime
+                                     && Convert.ToDouble(item.Attribute("time").Value) >= startTime
+                                     orderby (double)item.Attribute("time")
+                                     select new
+                                     {
+                                         time = item.Attribute("time").Value,
+                                         dp_count = item.Attribute("dropped_packets").Value
+                                     }).Last();
+                    if (dPackItem != null)
+                    {
+                        Int64 realDpCount = Convert.ToInt64(dPackItem.dp_count);
+                        rate = (realDpCount - lastDpCount) / TimeInterval;
+                        lastDpCount = realDpCount;
+                    }
+                    list[count].droppedPacketList.Add((j + 1) * TimeInterval, rate);
+
+                }
+                count++;
+            }
+            return list;
         }
         public Flow[] GetWSizeList(XDocument xmlDoc)
         {
@@ -94,7 +144,7 @@ namespace SimGrapher
             // Offset Y space between point and label
             // NOTE:  This offset is in Y scale units, so it depends on your actual data
             //const double offset = 1.0;
-
+            #region add text labels
             // Loop to add text labels to the points
             /*for (int i = 0; i < count; i++)
             {
@@ -114,6 +164,7 @@ namespace SimGrapher
 
                 myPane.GraphObjList.Add(text);
             }*/
+            #endregion
 
             // Leave some extra space on top for the labels to fit within the chart rect
             myPane.YAxis.Scale.MaxGrace = 0.2;
@@ -121,12 +172,40 @@ namespace SimGrapher
             // Calculate the Axis Scale Ranges
             zgc.AxisChange();
         }
-
-        private void zedGraphControl1_Load(object sender, EventArgs e)
+        public void CreateDroppedPacketChart(ZedGraphControl zgc, Link[] list)
         {
+            GraphPane myPane = zgc.GraphPane;
+            System.Drawing.Color[] GraphColors = { Color.Red, Color.Blue, Color.Green, Color.Orange, Color.Purple, Color.Brown };
+            // Set the titles and axis labels
+            myPane.Title.Text = "";
+            myPane.XAxis.Title.Text = "Time, ms";
+            myPane.YAxis.Title.Text = "window size";
 
+            /*myPane.Legend.Position = LegendPos.Float;
+            myPane.Legend.Location = new Location(0.95, 0.15, CoordType.PaneFraction,
+                                 AlignH.Right, AlignV.Top);
+            myPane.Legend.FontSpec.Size = 10;*/
+            myPane.Legend.Position = LegendPos.InsideTopLeft;
+            // Add a curve
+            for (int k = 0; k < list.Length; k++)
+            {
+                LineItem curve = myPane.AddCurve(list[k].name, list[k].droppedPacketList, GraphColors[k % 6], SymbolType.None);
+                curve.Line.Width = 2.0F;
+                curve.Line.IsAntiAlias = true;
+                curve.Symbol.Fill = new Fill(Color.White);
+                curve.Symbol.Size = 7;
+            }
+            // Fill the axis background with a gradient
+            //myPane.Chart.Fill = new Fill(Color.White, Color.FromArgb(255, Color.ForestGreen), 45.0F);
+
+            // Offset Y space between point and label
+            // NOTE:  This offset is in Y scale units, so it depends on your actual data
+            //const double offset = 1.0;
+            // Leave some extra space on top for the labels to fit within the chart rect
+            myPane.YAxis.Scale.MaxGrace = 0.2;
+
+            // Calculate the Axis Scale Ranges
+            zgc.AxisChange();
         }
-
-
     }
 }

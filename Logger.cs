@@ -53,6 +53,7 @@ namespace simulator
             string path = Simulator.LogFilePath;
             using (StreamWriter sw = File.AppendText(path))
             {
+                sw.WriteLine("<TotalTime>100</TotalTime>");
                 sw.WriteLine("</Logging>");
                 sw.Close();
             }
