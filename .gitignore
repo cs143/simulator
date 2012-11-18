@@ -1,5 +1,7 @@
 simulator.exe
 bin/
+obj/
+SimGrapher/obj
 *.userprefs
 *.pidb
 .DS_Store
