@@ -76,6 +76,7 @@ public class Host : Node
         return false;
     }
     
+    // FIXME
     private void _SendPacket() {
         var packet = new Packet{
             payload_size=Packet.DEFAULT_PAYLOAD_SIZE,
@@ -86,11 +87,10 @@ public class Host : Node
             timestamp = eqp.current_time
         };
         System.Console.WriteLine(ip + " sending " + packet + " at " + eqp.current_time);
-        // TODO re-implement
-        double completion_time = eqp.current_time + packet.size/link.rate;
-        eqp.Add(completion_time, link.ReceivePacket(packet));
+        link.EnqueuePacket(packet);
         this.next_seq_num += 1;
         // if HasPacketsToSend() == false, it will be idempotent
+        double completion_time = Double.NaN; // FIXME
         eqp.Add(completion_time, SendPacket());
         eqp.Add(completion_time + this.roundtrip_est, CheckTimeout(packet));
         hStat.flows[0].time = eqp.current_time;

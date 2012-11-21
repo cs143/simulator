@@ -27,7 +27,7 @@ public class Router : Node
         return () => {
             Node next = routing_table[Simulator.Nodes[packet.dest]];
             Link to_next = Simulator.LinksBySrcDest[Tuple.Create((Node)this, next)];
-            throw new NotImplementedException("TODO Call Node method that forwards packet on out-link");
+            to_next.EnqueuePacket(packet);
         };
     }
     
