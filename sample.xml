@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <Simulator>
-
   <Topology>
   <Hosts>
     <Host name="Host1"/>

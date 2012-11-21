@@ -22,7 +22,7 @@ public class Host {
     private IP dest_ip;
     private int next_seq_num = 0;
     private int ack_num = 0;
-    private double roundtrip_est = 1; // seconds
+    private double timeout = 1; // seconds
     private TCPStrategy tcp_strat;
 
     // PUBLIC METHODS
@@ -57,7 +57,7 @@ public class Host {
             this.bits_to_send = bits_to_send;
             this.dest_ip = ip;
             this.tcp_strat = new TCPReno();
-            UpdateTCPStates();
+            UpdateTCPState();
             eqp.Add(eqp.current_time, SendPacket());
         };
     }
@@ -99,7 +99,7 @@ public class Host {
         this.next_seq_num += 1;
         // if HasPacketsToSend() == false, it will be idempotent
         eqp.Add(completion_time, SendPacket());
-        eqp.Add(completion_time + this.roundtrip_est, CheckTimeout(packet));
+        eqp.Add(completion_time + this.timeout, CheckTimeout(packet));
         hStat.flows[0].time = eqp.current_time;
         hStat.flows[0].window_size = window_size;
         Logger.LogHostStatus(hStat);
@@ -119,25 +119,25 @@ public class Host {
 
     // PRIVATE METHODS THAT USE TCP STRATEGY
     private void ProcessACKPacket(Packet packet) {
-        this.tcp_strat.ProcessAck(packet);
-        UpdateTCPStates();
+        this.tcp_strat.ProcessAck(packet, eqp.current_time);
+        UpdateTCPState();
         eqp.Add(eqp.current_time, SendPacket());
     }
 
     private Event CheckTimeout(Packet packet) {
         return () => {
             if (this.ack_num <= packet.seq_num) { // timed out
-                this.tcp_strat.ProcessTimeout(packet);
-                UpdateTCPStates();
+                this.tcp_strat.ProcessTimeout(packet, eqp.current_time);
+                UpdateTCPState();
             }
             eqp.Add(eqp.current_time, SendPacket());
         };
     }
 
     // updates host parameters
-    private void UpdateTCPStates() {
+    private void UpdateTCPState() {
         this.window_size = this.tcp_strat.WindowSize();
-        this.roundtrip_est = this.tcp_strat.RTT();
+        this.timeout = this.tcp_strat.Timeout();
         this.ack_num = this.tcp_strat.BiggestAck();
         if (this.tcp_strat.ResetSeq()) {
             this.next_seq_num = this.ack_num;

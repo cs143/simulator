@@ -1,17 +1,21 @@
+using Time = System.Double;
+
 namespace simulator {
 
 interface TCPStrategy {
-    void ProcessAck(Packet packet);
-    void ProcessTimeout(Packet packet);
+    void ProcessAck(Packet packet, Time current_time);
+    void ProcessTimeout(Packet packet, Time current_time);
     double WindowSize();
-    double RTT();
+    double Timeout();
     int BiggestAck();
     bool ResetSeq();
 }
 
 public class TCPReno : TCPStrategy {
+    static double ROUNDTRIP_AVG_RATE = 0.25; // between 0 and 1
     private double window_size = 1;
-    private double rtt = 1000;
+    private double rt_avg = 1000;
+    private double rt_dev = 1000;
     private int biggest_ack = 0;
     private int dup_cnt = 0;
     private bool slow_start = true;
@@ -35,7 +39,13 @@ public class TCPReno : TCPStrategy {
     if pkt.ack_num < prev_ack
         we can ignore this, since eventually things will time out
     */
-    public void ProcessAck(Packet pkt) {
+    public void ProcessAck(Packet pkt, Time current_time) {
+        if (pkt.seq_num == 1) { // first packet
+            AdjustTimeout(current_time - pkt.timestamp, true);
+        }
+        else {
+            AdjustTimeout(current_time - pkt.timestamp, false);
+        }
         if (pkt.seq_num > this.biggest_ack) {
             this.biggest_ack = pkt.seq_num;
             this.dup_cnt = 0;
@@ -64,25 +74,109 @@ public class TCPReno : TCPStrategy {
         }
     }
 
+
     /**
       set window_size to 1, and go into slow state
     */
-    public void ProcessTimeout(Packet pkt) {
+    public void ProcessTimeout(Packet pkt, Time current_time) {
         slow_start_thresh = System.Math.Max(2.0, window_size / 2.0);
         window_size = 1.0;
         reset_seq = true;
         System.Console.WriteLine("SS:" + this);
     }
 
+    private void AdjustTimeout(Time rt, bool reset) {
+        // Textbook Page 92
+        if (reset) {
+            rt_avg = rt;
+            rt_dev = rt;
+        }
+        else {
+            double b = ROUNDTRIP_AVG_RATE;
+            rt_avg = (1-b)*rt_avg + b*rt;
+            rt_dev = (1-b)*rt_dev + b*System.Math.Abs(rt - rt_avg);
+        }
+    }
+
     public double WindowSize() { return window_size; } 
-    public double RTT() { return rtt; } 
+    public double Timeout() { return rt_avg + 4*rt_dev;}
     public int BiggestAck() { return biggest_ack; }
     public bool ResetSeq() { return reset_seq; }
 
     public override string ToString() {
-        string tmpl = "<TCPReno window_size={0:0.00} rtt={1} ack={2}";
+        string tmpl = "<TCPReno window_size={0:0.00} timeout={1} ack={2}";
         tmpl += " dup_cnt={3} slow_start={4} slow_start_thresh={5:0.00}>";
-        return string.Format(tmpl, window_size, rtt, biggest_ack, dup_cnt,
+        return string.Format(tmpl, window_size, Timeout(), biggest_ack, dup_cnt,
+                             slow_start, slow_start_thresh);
+    }
+}
+
+public class TCPFast : TCPStrategy {
+    static double ROUNDTRIP_AVG_RATE = 0.25; // between 0 and 1
+    private double window_size = 1;
+    private double rt_avg = 1000;
+    private double rt_dev = 1000;
+    private int biggest_ack = 0;
+    private int dup_cnt = 0;
+    private bool reset_seq = false;
+    private double base_rtt = 1000;
+
+    public void ProcessAck(Packet pkt, Time current_time) {
+        if (pkt.seq_num == 1) { // first packet
+            AdjustTimeout(current_time - pkt.timestamp, true);
+        }
+        else {
+            AdjustTimeout(current_time - pkt.timestamp, false);
+        }
+        if (pkt.seq_num > this.biggest_ack) { 
+            this.biggest_ack = pkt.seq_num;
+            this.dup_cnt = 0;
+            reset_seq = false;
+        }
+        else if (pkt.seq_num == this.biggest_ack) {
+            this.dup_cnt++;
+            if (dup_cnt == 3) { reset_seq = true; }
+            else { reset_seq = false; }
+        }
+        AdjustWindowPerAck();
+    }
+
+    /**
+      set window_size to 1, and go into slow state
+    */
+    public void ProcessTimeout(Packet pkt, Time current_time) {
+        reset_seq = true;
+    }
+
+
+    private void AdjustTimeout(Time rt, bool reset) {
+        // Textbook Page 92
+        base_rtt = System.Math.Min(rt, base_rtt);
+        if (reset) {
+            rt_avg = rt;
+            rt_dev = rt;
+        }
+        else {
+            double b = ROUNDTRIP_AVG_RATE;
+            rt_avg = (1-b)*rt_avg + b*rt;
+            rt_dev = (1-b)*rt_dev + b*System.Math.Abs(rt - rt_avg);
+        }
+    }
+
+    // call after adjusting timeout
+    private void AdjustWindowPerAck() {
+        // TODO fasttcp algorithm
+    }
+
+    public double WindowSize() { return window_size; } 
+    public double Timeout() { return rt_avg + 4*rt_dev;}
+    public int BiggestAck() { return biggest_ack; }
+    public bool ResetSeq() { return reset_seq; }
+
+    public override string ToString() {
+        string tmpl = "<TCPReno window_size={0:0.00} timeout={1} ack={2}";
+        tmpl += " dup_cnt={3} slow_start={4} slow_start_thresh={5:0.00}>";
+        return string.Format(tmpl, window_size, Timeout(), biggest_ack, dup_cnt,
                              slow_start, slow_start_thresh);
     }
 }
