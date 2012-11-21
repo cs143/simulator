@@ -54,8 +54,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Router.cs" />
     <Compile Include="simulator.cs" />
-    <Compile Include="PriorityQueue.cs" />
     <Compile Include="Initializer.cs" />
+    <Compile Include="TCPStrategy.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -65,7 +65,4 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <ItemGroup>
-    <None Include="sample.xml" />
-  </ItemGroup>
 </Project>
