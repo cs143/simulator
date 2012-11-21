@@ -28,7 +28,7 @@ public class EventQueueProcessor
 //System.Console.WriteLine("TIME:"+ current_time);
             Event next_event = next.Data;
             next_event();
-            Console.WriteLine("time " + current_time);
+            //Console.WriteLine("time " + current_time);
         }
     }
 }

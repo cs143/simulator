@@ -42,7 +42,11 @@ public class Host {
             if (packet.type == PacketType.ACK) {
                 ProcessACKPacket(packet);
             } else {
-                ProcessDataPacket(packet);
+                if (r.Next(0, 20) != 0) {
+                    ProcessDataPacket(packet);
+                } else {
+                    Console.WriteLine(name+": Ignoring " + packet + this);
+                }
             }
         };
     }
@@ -63,7 +67,7 @@ public class Host {
         tmpl += " ack_num={4} bits_to_send={5}>";
         return string.Format(tmpl, ip, name, window_size, next_seq_num, ack_num, bits_to_send);
     }
-    
+
     // PRIVATE METHODS THAT DO NOT USE TCP STRATEGY
     private Event SendPacket() {
         return () => {
@@ -88,8 +92,8 @@ public class Host {
             seq_num=this.next_seq_num,
             timestamp = eqp.current_time
         };
-        System.Console.WriteLine(name + " sending " + packet + " at " + eqp.current_time);
         // TODO re-implement
+        Console.WriteLine(name+":"+eqp.current_time+": Sending " + packet);
         double completion_time = eqp.current_time + packet.size/link.rate;
         eqp.Add(completion_time, link.ReceivePacket(packet));
         this.next_seq_num += 1;
@@ -102,7 +106,6 @@ public class Host {
     }
 
     private void ProcessDataPacket(Packet packet) {
-        System.Console.WriteLine(name + " received " + packet + " at " + eqp.current_time);
         if (packet.seq_num == expected_seq_num) {
             expected_seq_num++;
         }
@@ -123,7 +126,7 @@ public class Host {
 
     private Event CheckTimeout(Packet packet) {
         return () => {
-            if (this.ack_num < packet.seq_num) { // timed out
+            if (this.ack_num <= packet.seq_num) { // timed out
                 this.tcp_strat.ProcessTimeout(packet);
                 UpdateTCPStates();
             }
@@ -136,7 +139,9 @@ public class Host {
         this.window_size = this.tcp_strat.WindowSize();
         this.roundtrip_est = this.tcp_strat.RTT();
         this.ack_num = this.tcp_strat.BiggestAck();
-        System.Console.WriteLine(this.tcp_strat);
+        if (this.tcp_strat.ResetSeq()) {
+            this.next_seq_num = this.ack_num;
+        }
     }
 }
 

@@ -6,6 +6,7 @@ interface TCPStrategy {
     double WindowSize();
     double RTT();
     int BiggestAck();
+    bool ResetSeq();
 }
 
 public class TCPReno : TCPStrategy {
@@ -14,7 +15,8 @@ public class TCPReno : TCPStrategy {
     private int biggest_ack = 0;
     private int dup_cnt = 0;
     private bool slow_start = true;
-    private double slow_start_thresh = 2;
+    private double slow_start_thresh = 100000000;
+    private bool reset_seq = false;
 
     /**
     if pkt.ack_num > prev_acknowledged
@@ -34,24 +36,30 @@ public class TCPReno : TCPStrategy {
         we can ignore this, since eventually things will time out
     */
     public void ProcessAck(Packet pkt) {
-        //System.Console.WriteLine("received " + pkt);
         if (pkt.seq_num > this.biggest_ack) {
-            //System.Console.WriteLine("normal");
             this.biggest_ack = pkt.seq_num;
             this.dup_cnt = 0;
             if (slow_start) {
                 window_size++;
-                if (window_size > slow_start_thresh) slow_start = false;
+                if (window_size > slow_start_thresh) {
+                    slow_start = false;
+                    System.Console.WriteLine("SS to CA :" + this);
+                }
             } else { // Congestion Avoidance
                 window_size += 1/window_size;
             }
+            reset_seq = false;
         }
         else if (pkt.seq_num == this.biggest_ack) {
-            //System.Console.WriteLine("dup");
             this.dup_cnt++;
             if (dup_cnt == 3) {
-                window_size /= 2;
+                window_size = System.Math.Max(2.0, window_size/2.0);
                 slow_start = false;
+                reset_seq = true;
+                System.Console.WriteLine("CA:" + this);
+            }
+            else {
+                reset_seq = false;
             }
         }
     }
@@ -60,15 +68,16 @@ public class TCPReno : TCPStrategy {
       set window_size to 1, and go into slow state
     */
     public void ProcessTimeout(Packet pkt) {
-        System.Console.WriteLine("Dropped " + pkt);
-        slow_start_thresh = window_size / 2.0;
-        window_size = 1;
-        biggest_ack = pkt.seq_num;
+        slow_start_thresh = System.Math.Max(2.0, window_size / 2.0);
+        window_size = 1.0;
+        reset_seq = true;
+        System.Console.WriteLine("SS:" + this);
     }
 
     public double WindowSize() { return window_size; } 
     public double RTT() { return rtt; } 
     public int BiggestAck() { return biggest_ack; }
+    public bool ResetSeq() { return reset_seq; }
 
     public override string ToString() {
         string tmpl = "<TCPReno window_size={0:0.00} rtt={1} ack={2}";
