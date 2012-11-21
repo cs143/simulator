@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System;
 using System.IO;
+using System.Linq;
 //using System.Windows.Forms;
 using System.ComponentModel;
 /*public class NodeFactory {
@@ -24,7 +25,8 @@ namespace simulator
         public static Dictionary<string, Host> Hosts;
         public static Dictionary<string, Link> Links;
         public static Dictionary<Tuple<Host, Host>, Link> LinksBySrcDest;
-        public static Dictionary<string, simulator.Router> Routers;
+        public static Dictionary<string, Router> Routers;
+        public static Dictionary<string, Node> Nodes = new Dictionary<string, Node>();
         public static string LogFilePath = "";
         static void Main()
         {
@@ -113,6 +115,8 @@ namespace simulator
                 Console.WriteLine(flow_name);
             }
             #endregion
+            Nodes = Hosts.Union(Nodes).ToDictionary();
+            
             LogFilePath = xmlDoc.GetElementsByTagName("LogFilePath")[0].Attributes["path"].Value;
             Console.WriteLine("Log File Path = " + LogFilePath);
             Logger.InitLogFile();

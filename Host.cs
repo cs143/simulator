@@ -1,22 +1,19 @@
 using IP = System.Int32;
 using System;
 
-namespace simulator {
+namespace simulator
+{
 
-public class Host {
-    // STATIC
-    private static IP next_ip = 100;
-
-    // SHARED
-    public readonly EventQueueProcessor eqp;
-    public readonly IP ip = Host.next_ip++;
-    public readonly string name;
+public class Host : Node
+{
+    #region SHARED
     public Link link { get; set; }
     private int expected_seq_num = 0; // seq number for the next packet
     public FlowReceive flow_rec_stat = new FlowReceive();
     public HostStatus hStat = new HostStatus();
-
-    // SENDER SPECIFIC
+    #endregion
+    
+    #region SENDER SPECIFIC
     public double window_size { get; protected set; }
     private Int64 bits_to_send = 0;
     private IP dest_ip;
@@ -24,20 +21,19 @@ public class Host {
     private int ack_num = 0;
     private double roundtrip_est = 1; // seconds
     private TCPStrategy tcp_strat;
-
-    // PUBLIC METHODS
+    #endregion
+    
+    #region PUBLIC METHODS
     /* Initializer */
-    public Host(EventQueueProcessor eqp, string name) {
-        this.eqp = eqp;
-        this.name = name;
+    public Host(EventQueueProcessor eqp, string name) : base(eqp, name) {
         this.hStat.host_name = name;
         this.hStat.flows = new FlowStatus[1];
         this.hStat.flows[0] = new FlowStatus();
     }
     Random r = new Random();
-
+    
     /* Main receive event */
-    public Event ReceivePacket(Packet packet) {
+    public override Event ReceivePacket(Packet packet) {
         return () => {
             if (packet.type == PacketType.ACK) {
                 ProcessACKPacket(packet);
@@ -46,7 +42,7 @@ public class Host {
             }
         };
     }
-
+    
     // TODO strategy
     public Event SetupSend(IP ip, Int64 bits_to_send) {
         return () => {
@@ -57,20 +53,21 @@ public class Host {
             eqp.Add(eqp.current_time, SendPacket());
         };
     }
-
+    
     public override string ToString() {
         string tmpl = "<Host ip={0} name={1} window_size={2:0.00} seq_num={3}";
         tmpl += " ack_num={4} bits_to_send={5}>";
         return string.Format(tmpl, ip, name, window_size, next_seq_num, ack_num, bits_to_send);
     }
+    #endregion
     
-    // PRIVATE METHODS THAT DO NOT USE TCP STRATEGY
+    #region PRIVATE METHODS THAT DO NOT USE TCP STRATEGY
     private Event SendPacket() {
         return () => {
             if (HasPacketsToSend()) _SendPacket();
         };
     }
-
+    
     private bool HasPacketsToSend() {
         if (this.next_seq_num * Packet.DEFAULT_PAYLOAD_SIZE < this.bits_to_send &&
             this.next_seq_num - this.ack_num < this.window_size) {
@@ -78,7 +75,7 @@ public class Host {
         }
         return false;
     }
-
+    
     private void _SendPacket() {
         var packet = new Packet{
             payload_size=Packet.DEFAULT_PAYLOAD_SIZE,
@@ -100,7 +97,7 @@ public class Host {
         hStat.flows[0].window_size = window_size;
         Logger.LogHostStatus(hStat);
     }
-
+    
     private void ProcessDataPacket(Packet packet) {
         System.Console.WriteLine(name + " received " + packet + " at " + eqp.current_time);
         if (packet.seq_num == expected_seq_num) {
@@ -113,14 +110,15 @@ public class Host {
                                 seq_num=expected_seq_num};
         eqp.Add(eqp.current_time + ack_p.size / link.rate, link.ReceivePacket(ack_p));
     }
-
-    // PRIVATE METHODS THAT USE TCP STRATEGY
+    #endregion
+    
+    #region PRIVATE METHODS THAT USE TCP STRATEGY
     private void ProcessACKPacket(Packet packet) {
         this.tcp_strat.ProcessAck(packet);
         UpdateTCPStates();
         eqp.Add(eqp.current_time, SendPacket());
     }
-
+    
     private Event CheckTimeout(Packet packet) {
         return () => {
             if (this.ack_num < packet.seq_num) { // timed out
@@ -130,7 +128,7 @@ public class Host {
             eqp.Add(eqp.current_time, SendPacket());
         };
     }
-
+    
     // updates host parameters
     private void UpdateTCPStates() {
         this.window_size = this.tcp_strat.WindowSize();
@@ -138,6 +136,7 @@ public class Host {
         this.ack_num = this.tcp_strat.BiggestAck();
         System.Console.WriteLine(this.tcp_strat);
     }
+    #endregion
 }
 
 }
