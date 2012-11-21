@@ -33,9 +33,25 @@ public class Link {
         this.buffer = new Queue<Packet>();
     }
     
+    /// <summary>Stores the packet in the send buffer (or discards it if the buffer is full).<c/summary>
+    /// <remarks>
+    /// Note: Not an event, because a Link can always-immediately accept a packet into the queue.
+    /// The packet will be sent asynchronously at some later time.
+    /// </remarks>
+    /// <param name='packet'>
+    /// The packet to be sent along this link
+    /// </param>
+    public void EnqueuePacket(Packet packet) {
+        //TODO
+        double completion_time = eqp.current_time + packet.size/this.rate;
+        eqp.Add(completion_time, dest.ReceivePacket(packet));
+        throw new NotImplementedException();
+    }
+    
     /// <summary>
     /// The event where the Link finishes receiving a packet.
     /// </summary>
+    // TODO delete; this is wrong
     public Event ReceivePacket(Packet packet) {
         return () => {
             if (!this.is_busy)

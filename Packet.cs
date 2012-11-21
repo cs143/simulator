@@ -1,4 +1,4 @@
-using IP = System.Int32;
+using IP = System.String;
 
 namespace simulator
 {
