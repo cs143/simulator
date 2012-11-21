@@ -1,5 +1,6 @@
-using IP = System.Int32;
 using System;
+
+using IP = System.String;
 
 namespace simulator
 {
@@ -25,8 +26,8 @@ public class Host : Node
     
     #region PUBLIC METHODS
     /* Initializer */
-    public Host(EventQueueProcessor eqp, string name) : base(eqp, name) {
-        this.hStat.host_name = name;
+    public Host(EventQueueProcessor eqp, IP ip) : base(eqp, ip) {
+        this.hStat.host_name = ip;
         this.hStat.flows = new FlowStatus[1];
         this.hStat.flows[0] = new FlowStatus();
     }
@@ -55,9 +56,8 @@ public class Host : Node
     }
     
     public override string ToString() {
-        string tmpl = "<Host ip={0} name={1} window_size={2:0.00} seq_num={3}";
-        tmpl += " ack_num={4} bits_to_send={5}>";
-        return string.Format(tmpl, ip, name, window_size, next_seq_num, ack_num, bits_to_send);
+        return string.Format("<Host ip={0} window_size={2:0.00} seq_num={3} ack_num={4} bits_to_send={5}>",
+            ip, null, window_size, next_seq_num, ack_num, bits_to_send);
     }
     #endregion
     
@@ -85,7 +85,7 @@ public class Host : Node
             seq_num=this.next_seq_num,
             timestamp = eqp.current_time
         };
-        System.Console.WriteLine(name + " sending " + packet + " at " + eqp.current_time);
+        System.Console.WriteLine(ip + " sending " + packet + " at " + eqp.current_time);
         // TODO re-implement
         double completion_time = eqp.current_time + packet.size/link.rate;
         eqp.Add(completion_time, link.ReceivePacket(packet));
@@ -99,7 +99,7 @@ public class Host : Node
     }
     
     private void ProcessDataPacket(Packet packet) {
-        System.Console.WriteLine(name + " received " + packet + " at " + eqp.current_time);
+        System.Console.WriteLine(ip + " received " + packet + " at " + eqp.current_time);
         if (packet.seq_num == expected_seq_num) {
             expected_seq_num++;
         }

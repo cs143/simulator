@@ -1,5 +1,6 @@
-using IP = System.Int32;
 using System;
+
+using IP = System.String;
 
 namespace simulator
 {
@@ -15,13 +16,14 @@ public abstract class Node
     public abstract Event ReceivePacket(Packet packet);
     
     protected readonly EventQueueProcessor eqp;
-    private static IP next_ip = 100;
-    public readonly IP ip = next_ip++;
-    public readonly string name;
+    /// <summary>
+    /// The name of this node, which also functions as its IP address.
+    /// </summary>
+    public readonly IP ip;
     
-    protected Node(EventQueueProcessor eqp, string name) {
+    protected Node(EventQueueProcessor eqp, string ip) {
         this.eqp = eqp;
-        this.name = name;
+        this.ip = ip;
     }
 }
 }

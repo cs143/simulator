@@ -5,6 +5,9 @@ using System.IO;
 using System.Linq;
 //using System.Windows.Forms;
 using System.ComponentModel;
+
+using IP = System.String;
+
 /*public class NodeFactory {
     public static NodeFactory FromConfig() {
         return new NodeFactory();
@@ -22,11 +25,11 @@ namespace simulator
     public class Simulator
     {
         static EventQueueProcessor eqp = new EventQueueProcessor();
-        public static Dictionary<string, Host> Hosts;
+        public static Dictionary<IP, Host> Hosts;
         public static Dictionary<string, Link> Links;
-        public static Dictionary<Tuple<Host, Host>, Link> LinksBySrcDest;
-        public static Dictionary<string, Router> Routers;
-        public static Dictionary<string, Node> Nodes = new Dictionary<string, Node>();
+        public static Dictionary<Tuple<Node, Node>, Link> LinksBySrcDest;
+        public static Dictionary<IP, Router> Routers;
+        public static Dictionary<IP, Node> Nodes;
         public static string LogFilePath = "";
         static void Main()
         {
@@ -68,12 +71,12 @@ namespace simulator
             {
                 string router_name = router_node.Attributes["name"].Value;
                 Console.WriteLine(router_name);
-                Simulator.Routers.Add(router_name, new simulator.Router(router_name));
+                Simulator.Routers.Add(router_name, new simulator.Router(eqp, router_name));
             }
             #endregion
             #region Populate Links
             Simulator.Links = new Dictionary<string, Link>();
-            Simulator.LinksBySrcDest = new Dictionary<Tuple<Host, Host>, Link>();
+            Simulator.LinksBySrcDest = new Dictionary<Tuple<Node, Node>, Link>();
             XmlNodeList link_list = xmlDoc.GetElementsByTagName("Link");
             foreach (XmlNode link_node in link_list)
             {
@@ -95,8 +98,8 @@ namespace simulator
                 
                 Simulator.Links.Add(forward_link.name, forward_link);
                 Simulator.Links.Add(reverse_link.name, reverse_link);
-                Simulator.LinksBySrcDest.Add(Tuple.Create(from_host, to_host), forward_link);
-                Simulator.LinksBySrcDest.Add(Tuple.Create(to_host, from_host), reverse_link);
+                Simulator.LinksBySrcDest.Add(new Tuple<Node, Node>(from_host, to_host), forward_link);
+                Simulator.LinksBySrcDest.Add(new Tuple<Node, Node>(to_host, from_host), reverse_link);
                 
                 Console.WriteLine(link_name);
             }
@@ -115,7 +118,14 @@ namespace simulator
                 Console.WriteLine(flow_name);
             }
             #endregion
-            Nodes = Hosts.Union(Nodes).ToDictionary();
+            // TODO Is there a more elegant way to do this?
+            Nodes = Hosts.Select(e => new KeyValuePair<IP, Node>(e.Key, e.Value))
+                .Concat(Routers.Select(e => new KeyValuePair<IP, Node>(e.Key, e.Value)))
+                .ToDictionary(pair => pair.Key, pair => pair.Value);
+                // ((IDictionary<IP, Node>)Hosts).Concat<Node>(Routers); // union
+            
+            //.SelectMany(dict => dict)
+              //  .ToDictionary(pair => pair.Key, pair => pair.Value);
             
             LogFilePath = xmlDoc.GetElementsByTagName("LogFilePath")[0].Attributes["path"].Value;
             Console.WriteLine("Log File Path = " + LogFilePath);
