@@ -8,6 +8,7 @@ public class Link {
     public readonly double rate;
     public double cost {
         get {
+            // TODO Use better cost calculation
             return 1.0 / rate;
         }
     }
