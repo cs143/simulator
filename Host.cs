@@ -3,15 +3,11 @@ using System;
 
 namespace simulator {
 
-public class Host {
+public class Host:DumbNode {
     // STATIC
-    private static IP next_ip = 100;
-
+    
     // SHARED
     public readonly EventQueueProcessor eqp;
-    public readonly IP ip = Host.next_ip++;
-    public readonly string name;
-    public Link link { get; set; }
     private int expected_seq_num = 0; // seq number for the next packet
     public FlowReceive flow_rec_stat = new FlowReceive();
     public HostStatus hStat = new HostStatus();
@@ -37,7 +33,7 @@ public class Host {
     Random r = new Random();
 
     /* Main receive event */
-    public Event ReceivePacket(Packet packet) {
+    public override Event ReceivePacket(Packet packet) {
         return () => {
             if (packet.type == PacketType.ACK) {
                 ProcessACKPacket(packet);
@@ -91,7 +87,7 @@ public class Host {
         System.Console.WriteLine(name + " sending " + packet + " at " + eqp.current_time);
         // TODO re-implement
         double completion_time = eqp.current_time + packet.size/link.rate;
-        eqp.Add(completion_time, link.ReceivePacket(packet));
+        eqp.Add(eqp.current_time, link.ReceivePacket(packet));
         this.next_seq_num += 1;
         // if HasPacketsToSend() == false, it will be idempotent
         eqp.Add(completion_time, SendPacket());
