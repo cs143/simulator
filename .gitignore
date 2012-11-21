@@ -10,3 +10,4 @@ SimGrapher/obj
 *.exe
 *.mdb
 log.txt
+*.suo
