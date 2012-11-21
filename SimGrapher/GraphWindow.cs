@@ -55,7 +55,7 @@ namespace SimGrapher
                              select new
                              {
                                  time = item.Attribute("time"),
-                                 buff_size = Convert.ToDouble(item.Descendants("buffer_size").First().Value)
+                                 buff_size = Convert.ToDouble(item.Descendants("buffer_occupancy").First().Value)
                              };
             foreach (var pt in buff_size_items)
             {

@@ -56,7 +56,7 @@ namespace simulator
         public static void CloseLogFile()
         {
             
-                asw.WriteLine("<TotalTime>35</TotalTime>");
+                asw.WriteLine("<TotalTime>"+Simulator.eqp.current_time+"</TotalTime>");
                 asw.WriteLine("</Logging>");
                 asw.Close();
         }
@@ -83,13 +83,13 @@ namespace simulator
             {
                 for (int k = 0; k < 6; k++)
                 {
-                    LinkStatus lStat = new LinkStatus();
-                    lStat.link_name = "L" + (k+1);
-                    lStat.dropped_packets = k*dropped_packets;
-                    lStat.buffer_size = k * dropped_packets;
-                    lStat.delivered_packets = k * dropped_packets;
-                    lStat.time = j;
-                    LogLinkStatus(lStat);
+                    //LinkStatus lStat = new LinkStatus();
+                    //lStat.link_name = "L" + (k+1);
+                    //lStat.dropped_packets = k*dropped_packets;
+                    //lStat.buffer_size = k * dropped_packets;
+                    //lStat.delivered_packets = k * dropped_packets;
+                    //lStat.time = j;
+                    //LogLinkStatus(lStat);
                     FlowReceive frStat = new FlowReceive();
                     frStat.flow_name = "Flow" + (k + 1);
                     frStat.time = j;
@@ -125,16 +125,39 @@ namespace simulator
         public string host_name;
         public FlowStatus[] flows;
     }
-    public struct LinkStatus
+    public class LinkStatus
     {
+        [XmlIgnore]
+        public Link link;
         [XmlAttribute]
-        public string link_name;
+        public string link_name
+        {
+            get
+            {
+                return link.name;
+            }
+            set{}
+        }
         [XmlAttribute]
-        public double time;
+        public double time
+        {
+            get
+            {
+                return link.eqp.current_time;
+            }
+            set { }
+        }
         [XmlElement]
         public Int64 dropped_packets;
         [XmlElement]
-        public Int64 buffer_size;
+        public Int64 buffer_occupancy
+        {
+            get
+            {
+                return this.link.buffer.Count;
+            }
+            set { }
+        }
         [XmlElement]
         public Int64 delivered_packets;
     }

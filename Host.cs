@@ -3,7 +3,7 @@ using System;
 
 namespace simulator {
 
-public class Host {
+public class Host:DumbNode {
     // STATIC
     private static IP next_ip = 100;
 
