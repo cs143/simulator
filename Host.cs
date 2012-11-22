@@ -5,13 +5,9 @@ namespace simulator {
 
 public class Host:DumbNode {
     // STATIC
-    private static IP next_ip = 100;
 
     // SHARED
     public readonly EventQueueProcessor eqp;
-    public readonly IP ip = Host.next_ip++;
-    public readonly string name;
-    public Link link { get; set; }
     private int expected_seq_num = 0; // seq number for the next packet
     public FlowReceive flow_rec_stat = new FlowReceive();
     public HostStatus hStat = new HostStatus();
@@ -37,16 +33,16 @@ public class Host:DumbNode {
     Random r = new Random();
 
     /* Main receive event */
-    public Event ReceivePacket(Packet packet) {
+    public override Event ReceivePacket(Packet packet) {
         return () => {
             if (packet.type == PacketType.ACK) {
                 ProcessACKPacket(packet);
             } else {
-                if (r.Next(0, 20) != 0) {
+                //if (r.Next(0, 20) != 0) {
                     ProcessDataPacket(packet);
-                } else {
-                    Console.WriteLine(name+": Ignoring " + packet + this);
-                }
+                //} else {
+                //    Console.WriteLine(name+": Ignoring " + packet + this);
+                //}
             }
         };
     }
@@ -94,7 +90,7 @@ public class Host:DumbNode {
         };
         // TODO re-implement
         Console.WriteLine(name+":"+eqp.current_time+": Sending " + packet);
-        double completion_time = eqp.current_time + packet.size/link.rate;
+        double completion_time = eqp.current_time;
         eqp.Add(completion_time, link.ReceivePacket(packet));
         this.next_seq_num += 1;
         // if HasPacketsToSend() == false, it will be idempotent
@@ -113,7 +109,8 @@ public class Host:DumbNode {
                                 src=this.ip,
                                 dest=link.dest.ip,
                                 type=PacketType.ACK,
-                                seq_num=expected_seq_num};
+                                seq_num=expected_seq_num,
+                                timestamp=packet.timestamp};
         eqp.Add(eqp.current_time + ack_p.size / link.rate, link.ReceivePacket(ack_p));
     }
 

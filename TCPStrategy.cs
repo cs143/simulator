@@ -39,6 +39,7 @@ public class TCPReno : TCPStrategy {
     if pkt.ack_num < prev_ack
         we can ignore this, since eventually things will time out
     */
+
     public void ProcessAck(Packet pkt, Time current_time) {
         if (pkt.seq_num == 1) { // first packet
             AdjustTimeout(current_time - pkt.timestamp, true);
@@ -105,9 +106,9 @@ public class TCPReno : TCPStrategy {
 
     public override string ToString() {
         string tmpl = "<TCPReno window_size={0:0.00} timeout={1} ack={2}";
-        tmpl += " dup_cnt={3} slow_start={4} slow_start_thresh={5:0.00}>";
+        tmpl += " dup_cnt={3} slow_start={4} slow_start_thresh={5:0.00} rt_avg={6} rt_dev={7}>";
         return string.Format(tmpl, window_size, Timeout(), biggest_ack, dup_cnt,
-                             slow_start, slow_start_thresh);
+                             slow_start, slow_start_thresh, rt_avg, rt_dev);
     }
 }
 
@@ -175,9 +176,8 @@ public class TCPFast : TCPStrategy {
 
     public override string ToString() {
         string tmpl = "<TCPReno window_size={0:0.00} timeout={1} ack={2}";
-        tmpl += " dup_cnt={3} slow_start={4} slow_start_thresh={5:0.00}>";
-        return string.Format(tmpl, window_size, Timeout(), biggest_ack, dup_cnt,
-                             slow_start, slow_start_thresh);
+        tmpl += " dup_cnt={3} ";
+        return string.Format(tmpl, window_size, Timeout(), biggest_ack, dup_cnt);
     }
 }
 

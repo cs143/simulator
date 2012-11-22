@@ -9,12 +9,12 @@
     <Router name="R1" />
   </Routers>
   <Links>
-    <Link name="Link1" rate="100000" prop_delay="0" buffer_size="10" from="Host1" to="R1"/>
-    <Link name="Link2" rate="1000" prop_delay="0" buffer_size="1" from="R1" to="Host2"/>
+    <Link name="Link1" rate="10000000" prop_delay="0" buffer_size="64" from="Host1" to="R1"/>
+    <Link name="Link2" rate="10000000" prop_delay="0" buffer_size="64" from="R1" to="Host2"/>
   </Links>
   </Topology>
   <Flows>
-    <Flow name="F1" from="Host1" to="Host2" pkt_count="1000000" start_time="10" algorithm="AIMD"/>
+    <Flow name="F1" from="Host1" to="Host2" pkt_count="160000000" start_time="10" algorithm="AIMD"/>
   </Flows>
   <LogFilePath path="log.xml" />
 </Simulator>

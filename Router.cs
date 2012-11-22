@@ -1,4 +1,5 @@
-﻿using System;
+﻿/*
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -56,7 +57,7 @@ public class Router
             if(dist[u] == Double.PositiveInfinity)
                 break; // remaining nodes are inaccessible
             
-            foreach(Node v /*out-neighbor of u*/in queue
+            foreach(Node v in queue
                 .Where(v => Simulator.LinksBySrcDest.ContainsKey(Tuple.Create(u, v))))
             {
                 Link uv = Simulator.LinksBySrcDest[Tuple.Create(u, v)];
@@ -94,3 +95,4 @@ public class Router
 }
 
 }
+*/
