@@ -166,7 +166,7 @@ public class TCPFast : TCPStrategy {
 
     // call after adjusting timeout
     private void AdjustWindowPerAck() {
-        // TODO fasttcp algorithm
+        window_size = window_size * base_rtt / rt_avg + 3.0 / window_size;
     }
 
     public double WindowSize() { return window_size; } 
