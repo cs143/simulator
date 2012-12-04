@@ -14,8 +14,8 @@ interface TCPStrategy {
 public class TCPReno : TCPStrategy {
     static double ROUNDTRIP_AVG_RATE = 0.25; // between 0 and 1
     private double window_size = 1;
-    private double rt_avg = 1000;
-    private double rt_dev = 1000;
+    private double rt_avg = 10000000000;
+    private double rt_dev = 10000000000;
     private int biggest_ack = 0;
     private int dup_cnt = 0;
     private bool slow_start = true;

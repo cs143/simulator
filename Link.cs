@@ -12,6 +12,7 @@ public class Link {
             return 1.0 / rate;
         }
     }
+
     public readonly double prop_delay;
     public string name;
     public Int64 buffer_size;
@@ -32,27 +33,32 @@ public class Link {
         this.is_busy = false;
         this.buffer = new Queue<Packet>();
     }
-    
+
     /// <summary>
     /// The event where the Link finishes receiving a packet.
     /// </summary>
     public Event ReceivePacket(Packet packet) {
         return () => {
+            // Console.WriteLine("received "+ packet);
             if (!this.is_busy)
             {
                 TransmitPacket(packet);
+                // Console.WriteLine("transmitting " + packet);
             }
             else if (this.buffer.Count < this.buffer_size)
             {
                 this.buffer.Enqueue(packet);
+                //Console.WriteLine("queueing " + packet);
             }
             else
             {
                 this.lStatus.dropped_packets++;
+                // Console.WriteLine("dropping " + packet);
             }
             Logger.LogLinkStatus(lStatus);
         };
     }
+
     public Event PacketTransmissionComplete()
     {
         return () =>
@@ -64,6 +70,7 @@ public class Link {
                 else
                 {
                     Packet nextPkt = this.buffer.Dequeue();
+                    // Console.WriteLine("transmitting " + nextPkt);
                     TransmitPacket(nextPkt);
                 }
                 this.lStatus.delivered_packets++;
@@ -71,9 +78,11 @@ public class Link {
                 
             };
     }
+
     public override string ToString() {
         return string.Format("<Link dest={0} rate={1} prop_delay={2}>", dest, rate, prop_delay);
     }
+
     private void TransmitPacket(Packet packet)
     {
         this.is_busy = true;
