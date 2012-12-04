@@ -17,7 +17,7 @@ public class Link {
     public string name;
     public Int64 buffer_size;
     /// <summary>Whether the Link is currently transmitting a packet</summary>
-    private bool is_busy;
+    private bool is_transmitting;
     public LinkStatus lStatus;
     public Queue<Packet> buffer;
     public Link(EventQueueProcessor eqp, string name, Node dest, double rate, double prop_delay, Int64 buffer_size) {
@@ -31,7 +31,7 @@ public class Link {
         this.lStatus.link = this;
         this.lStatus.dropped_packets = 0;
         this.lStatus.delivered_packets = 0;
-        this.is_busy = false;
+        this.is_transmitting = false;
         this.buffer = new Queue<Packet>();
     }
     
@@ -47,7 +47,7 @@ public class Link {
     /// </param>
     public Event EnqueuePacket(Packet packet) {
         return () => {
-            if (!this.is_busy)
+            if (!this.is_transmitting)
             {
                 TransmitPacket(packet);
             }
@@ -64,8 +64,8 @@ public class Link {
     }
     private void TransmitPacket(Packet packet)
     {
-        Debug.Assert(!this.is_busy, "Bug: Tried to transmit two packets simultaneously");
-        this.is_busy = true;
+        Debug.Assert(!this.is_transmitting, "Bug: Tried to transmit two packets simultaneously");
+        this.is_transmitting = true;
         double trans_duration = packet.size / this.rate;
         eqp.Add(eqp.current_time + trans_duration, this.PacketTransmissionComplete());
         double arrival_time = eqp.current_time + trans_duration + prop_delay;
@@ -77,20 +77,16 @@ public class Link {
     /// </summary>
     private Event PacketTransmissionComplete()
     {
-        return () =>
+        return () => {
+            this.is_transmitting = false;
+            if (this.buffer.Count > 0)
             {
-                if (this.buffer.Count == 0)
-                {
-                    this.is_busy = false;
-                }
-                else
-                {
-                    Packet nextPkt = this.buffer.Dequeue();
-                    TransmitPacket(nextPkt);
-                }
-                this.lStatus.delivered_packets++;
-                Logger.LogLinkStatus(lStatus);
-            };
+                Packet nextPkt = this.buffer.Dequeue();
+                TransmitPacket(nextPkt);
+            }
+            this.lStatus.delivered_packets++;
+            Logger.LogLinkStatus(lStatus);
+        };
     }
     public override string ToString() {
         return string.Format("<Link dest={0} rate={1} prop_delay={2}>", dest, rate, prop_delay);
