@@ -99,12 +99,12 @@ namespace simulator
                     Convert.ToDouble(link_node.Attributes["rate"].Value),
                     Convert.ToDouble(link_node.Attributes["prop_delay"].Value),
                     Convert.ToInt64(link_node.Attributes["buffer_size"].Value));
-                from_node.link = forward_link;
+                from_node.RegisterLink(forward_link);
                 Link reverse_link = new Link(eqp, link_name + "_Reverse", from_node,
                     Convert.ToDouble(link_node.Attributes["rate"].Value),
                     Convert.ToDouble(link_node.Attributes["prop_delay"].Value),
                     Convert.ToInt64(link_node.Attributes["buffer_size"].Value));
-                to_node.link = reverse_link;
+                to_node.RegisterLink(reverse_link);
                 
                 Simulator.Links.Add(forward_link.name, forward_link);
                 Simulator.Links.Add(reverse_link.name, reverse_link);

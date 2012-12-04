@@ -25,6 +25,8 @@ public abstract class Node
         this.eqp = eqp;
         this.ip = ip;
     }
+    
+    public abstract void RegisterLink(Link link);
 }
 }
 

@@ -19,6 +19,10 @@ public class Router : Node
     public Router(EventQueueProcessor eqp, IP ip) : base(eqp, ip) {
     }
     
+    public override void RegisterLink(Link link) {
+        // Nothing to do, since we look up links from the global Simulator.LinksBySrcDest when needed.
+    }
+    
     /// <summary>
     /// Event that router receives a packet.
     /// The router will immediately perform a routing-table lookup, and forward the packet along the appropriate link.

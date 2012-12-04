@@ -8,7 +8,12 @@ namespace simulator
 public class Host : Node
 {
     #region SHARED
-    public Link link { get; set; }
+    public override void RegisterLink(Link link) {
+        if(this.link != null)
+            throw new InvalidOperationException("This Host already has an outbound link");
+        this.link = link;
+    }
+    private Link link { get; set; }
     private int expected_seq_num = 0; // seq number for the next packet
     public FlowReceive flow_rec_stat = new FlowReceive();
     public HostStatus hStat = new HostStatus();
