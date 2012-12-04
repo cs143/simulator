@@ -52,7 +52,7 @@ namespace simulator
             XmlDocument xmlDoc = new XmlDocument();
             Console.WriteLine("Enter the path to the configuration file (default = config.xml) =>");
             string fileName = Console.ReadLine();
-            if (fileName == "") fileName = "../../config.xml";
+            if (fileName == "" || fileName == null) fileName = "./config.xml";
             xmlDoc.Load(fileName);
             #region Populate Hosts
             Simulator.Hosts = new Dictionary<string, Host>();
