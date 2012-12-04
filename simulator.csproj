@@ -54,11 +54,10 @@
     <Compile Include="Packet.cs" />
     <Compile Include="PriorityQueue.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Router.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="Router.cs" />
     <Compile Include="simulator.cs" />
     <Compile Include="Initializer.cs" />
+    <Compile Include="Node.cs" />
     <Compile Include="TCPStrategy.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -69,4 +68,7 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <None Include="sample.xml" />
+  </ItemGroup>
 </Project>
