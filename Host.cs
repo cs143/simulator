@@ -119,7 +119,7 @@ public class Host : Node
                                 type=PacketType.ACK,
                                 seq_num=expected_seq_num,
                                 timestamp=packet.timestamp};
-        eqp.Add(eqp.current_time + ack_p.size / link.rate, link.ReceivePacket(ack_p));
+        eqp.Add(eqp.current_time + ack_p.size / link.rate, link.EnqueuePacket(ack_p));
     }
     #endregion
 
