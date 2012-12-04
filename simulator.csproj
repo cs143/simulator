@@ -67,6 +67,6 @@
   </Target>
   -->
   <ItemGroup>
-    <None Include="sample.xml" />
+    <None Include="config.xml" />
   </ItemGroup>
 </Project>
