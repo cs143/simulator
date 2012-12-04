@@ -4,7 +4,7 @@ namespace simulator {
 
 public class Link {
     public readonly EventQueueProcessor eqp;
-    public readonly DumbNode dest;
+    public readonly Node dest;
     public readonly double rate;
     public double cost {
         get {
@@ -18,7 +18,7 @@ public class Link {
     public bool is_busy;
     public LinkStatus lStatus;
     public Queue<Packet> buffer;
-    public Link(EventQueueProcessor eqp, string name, DumbNode dest, double rate, double prop_delay, Int64 buffer_size) {
+    public Link(EventQueueProcessor eqp, string name, Node dest, double rate, double prop_delay, Int64 buffer_size) {
         this.eqp = eqp;
         this.dest = dest;
         this.rate = rate;

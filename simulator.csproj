@@ -45,8 +45,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DumbNode.cs" />
-    <Compile Include="DumbRouter.cs" />
     <Compile Include="EventQueueProcessor.cs" />
     <Compile Include="Host.cs" />
     <Compile Include="Link.cs" />
