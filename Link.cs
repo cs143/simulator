@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 namespace simulator {
 
 public class Link {
     public readonly EventQueueProcessor eqp;
-    public readonly DumbNode dest;
+    public readonly Node dest;
     public readonly double rate;
     public double cost {
         get {
@@ -16,10 +17,11 @@ public class Link {
     public readonly double prop_delay;
     public string name;
     public Int64 buffer_size;
-    public bool is_busy;
+    /// <summary>Whether the Link is currently transmitting a packet</summary>
+    private bool is_transmitting;
     public LinkStatus lStatus;
     public Queue<Packet> buffer;
-    public Link(EventQueueProcessor eqp, string name, DumbNode dest, double rate, double prop_delay, Int64 buffer_size) {
+    public Link(EventQueueProcessor eqp, string name, Node dest, double rate, double prop_delay, Int64 buffer_size) {
         this.eqp = eqp;
         this.dest = dest;
         this.rate = rate;
@@ -30,17 +32,23 @@ public class Link {
         this.lStatus.link = this;
         this.lStatus.dropped_packets = 0;
         this.lStatus.delivered_packets = 0;
-        this.is_busy = false;
+        this.is_transmitting = false;
         this.buffer = new Queue<Packet>();
     }
 
     /// <summary>
-    /// The event where the Link finishes receiving a packet.
+    /// The event where the Link stores the packet in the send buffer (or discards it if the buffer is full).
     /// </summary>
-    public Event ReceivePacket(Packet packet) {
+    /// <remarks>
+    /// Note: A Link always immediately either accept a packet into the queue or discards it.
+    /// The packet will be sent asynchronously at some later time.
+    /// </remarks>
+    /// <param name='packet'>
+    /// The packet to be sent along this link
+    /// </param>
+    public Event EnqueuePacket(Packet packet) {
         return () => {
-            // Console.WriteLine("received "+ packet);
-            if (!this.is_busy)
+            if (!this.is_transmitting)
             {
                 TransmitPacket(packet);
                 // Console.WriteLine("transmitting " + packet);
@@ -58,39 +66,36 @@ public class Link {
             Logger.LogLinkStatus(lStatus);
         };
     }
-
-    public Event PacketTransmissionComplete()
+    private void TransmitPacket(Packet packet)
     {
-        return () =>
-            {
-                if (this.buffer.Count == 0)
-                {
-                    this.is_busy = false;
-                }
-                else
-                {
-                    Packet nextPkt = this.buffer.Dequeue();
-                    // Console.WriteLine("transmitting " + nextPkt);
-                    TransmitPacket(nextPkt);
-                }
-                this.lStatus.delivered_packets++;
-                Logger.LogLinkStatus(lStatus);
-                
-            };
+        Debug.Assert(!this.is_transmitting, "Bug: Tried to transmit two packets simultaneously");
+        this.is_transmitting = true;
+        double trans_duration = packet.size / this.rate;
+        eqp.Add(eqp.current_time + trans_duration, this.PacketTransmissionComplete());
+        double arrival_time = eqp.current_time + trans_duration + prop_delay;
+        eqp.Add(arrival_time, dest.ReceivePacket(packet));
     }
-
+    /// <summary>
+    /// Event fired when the Link has finished transmitting a packet. The Link can then
+    /// process the next packet in the queue, if any.
+    /// </summary>
+    private Event PacketTransmissionComplete()
+    {
+        return () => {
+            this.is_transmitting = false;
+            if (this.buffer.Count > 0)
+            {
+                Packet nextPkt = this.buffer.Dequeue();
+                TransmitPacket(nextPkt);
+            }
+            this.lStatus.delivered_packets++;
+            Logger.LogLinkStatus(lStatus);
+        };
+    }
     public override string ToString() {
         return string.Format("<Link dest={0} rate={1} prop_delay={2}>", dest, rate, prop_delay);
     }
 
-    private void TransmitPacket(Packet packet)
-    {
-        this.is_busy = true;
-        double trans_duration = packet.size / this.rate;
-        double arrival_time = eqp.current_time + trans_duration + prop_delay;
-        eqp.Add(eqp.current_time + trans_duration, this.PacketTransmissionComplete());
-        eqp.Add(arrival_time, dest.ReceivePacket(packet));
-    }
 }
 
 }

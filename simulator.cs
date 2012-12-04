@@ -2,8 +2,12 @@ using System.Collections.Generic;
 using System.Xml;
 using System;
 using System.IO;
+using System.Linq;
 //using System.Windows.Forms;
 using System.ComponentModel;
+
+using IP = System.String;
+
 /*public class NodeFactory {
     public static NodeFactory FromConfig() {
         return new NodeFactory();
@@ -21,10 +25,11 @@ namespace simulator
     public class Simulator
     {
         public static EventQueueProcessor eqp = new EventQueueProcessor();
-        public static Dictionary<string, DumbNode> Nodes;
+        public static Dictionary<IP, Host> Hosts;
         public static Dictionary<string, Link> Links;
-        public static Dictionary<Tuple<Host, Host>, Link> LinksBySrcDest;
-        public static Dictionary<string, simulator.DumbRouter> Routers;
+        public static Dictionary<Tuple<Node, Node>, Link> LinksBySrcDest;
+        public static Dictionary<IP, Router> Routers;
+        public static Dictionary<IP, Node> Nodes;
         public static string LogFilePath = "";
         static void Main()
         {
@@ -47,61 +52,64 @@ namespace simulator
             XmlDocument xmlDoc = new XmlDocument();
             Console.WriteLine("Enter the path to the configuration file (default = config.xml) =>");
             string fileName = Console.ReadLine();
-            if (fileName == "") fileName = "../../config.xml";
+            if (fileName == "" || fileName == null) fileName = "./config.xml";
             xmlDoc.Load(fileName);
-            #region Populate Nodes
-           Simulator.Nodes = new Dictionary<string, DumbNode>();
+            #region Nodes
+            #region Populate Hosts
+            Simulator.Hosts = new Dictionary<string, Host>();
             XmlNodeList HostList = xmlDoc.GetElementsByTagName("Host");
             foreach (XmlNode hostNode in HostList)
             {
                 string hostName = hostNode.Attributes["name"].Value;
                 Console.WriteLine(hostName);
-                Simulator.Nodes.Add(hostName, new Host(eqp, hostName));
+                Simulator.Hosts.Add(hostName, new Host(eqp, hostName));
             }
             #endregion
             #region Populate Routers
-            Simulator.Routers = new Dictionary<string, simulator.DumbRouter>();
+            Simulator.Routers = new Dictionary<string, simulator.Router>();
             XmlNodeList router_list = xmlDoc.GetElementsByTagName("Router");
             foreach (XmlNode router_node in router_list)
             {
                 string router_name = router_node.Attributes["name"].Value;
                 Console.WriteLine(router_name);
-                Simulator.Nodes.Add(router_name, new simulator.DumbRouter(router_name));
+                Simulator.Routers.Add(router_name, new simulator.Router(eqp, router_name));
             }
+            #endregion
+            // TODO Is there a more elegant way to do this?
+            Nodes = Hosts.Select(e => new KeyValuePair<IP, Node>(e.Key, e.Value))
+                .Concat(Routers.Select(e => new KeyValuePair<IP, Node>(e.Key, e.Value)))
+                .ToDictionary(pair => pair.Key, pair => pair.Value);
+                // ((IDictionary<IP, Node>)Hosts).Concat<Node>(Routers); // union
+            
+            //.SelectMany(dict => dict)
+              //  .ToDictionary(pair => pair.Key, pair => pair.Value);
             #endregion
             #region Populate Links
             Simulator.Links = new Dictionary<string, Link>();
-            Simulator.LinksBySrcDest = new Dictionary<Tuple<Host, Host>, Link>();
+            Simulator.LinksBySrcDest = new Dictionary<Tuple<Node, Node>, Link>();
             XmlNodeList link_list = xmlDoc.GetElementsByTagName("Link");
             foreach (XmlNode link_node in link_list)
             {
                 string link_name = link_node.Attributes["name"].Value;
-                string host_to_name = link_node.Attributes["to"].Value;
-                string host_from_name = link_node.Attributes["from"].Value;
-                DumbNode to_host = Simulator.Nodes[host_to_name];
-                DumbNode from_host = Simulator.Nodes[host_from_name];
-                Link forward_link = new Link(eqp, link_name, to_host,
+                string node_to_name = link_node.Attributes["to"].Value;
+                string node_from_name = link_node.Attributes["from"].Value;
+                Node to_node = Simulator.Nodes[node_to_name];
+                Node from_node = Simulator.Nodes[node_from_name];
+                Link forward_link = new Link(eqp, link_name, to_node,
                     Convert.ToDouble(link_node.Attributes["rate"].Value),
                     Convert.ToDouble(link_node.Attributes["prop_delay"].Value),
                     Convert.ToInt64(link_node.Attributes["buffer_size"].Value));
-                from_host.link = forward_link;
-                Link reverse_link = new Link(eqp, link_name + "_Reverse", from_host,
-                     Convert.ToDouble(link_node.Attributes["rate"].Value),
+                from_node.RegisterLink(forward_link);
+                Link reverse_link = new Link(eqp, link_name + "_Reverse", from_node,
+                    Convert.ToDouble(link_node.Attributes["rate"].Value),
                     Convert.ToDouble(link_node.Attributes["prop_delay"].Value),
                     Convert.ToInt64(link_node.Attributes["buffer_size"].Value));
-                if (to_host.name.StartsWith("R"))
-                {
-                    DumbRouter to_router = (DumbRouter) to_host;
-                    to_router.reverse_link = reverse_link;
-                }
-                else
-                {
-                    to_host.link = reverse_link;
-                }
+                to_node.RegisterLink(reverse_link);
+                
                 Simulator.Links.Add(forward_link.name, forward_link);
                 Simulator.Links.Add(reverse_link.name, reverse_link);
-                //Simulator.LinksBySrcDest.Add(Tuple.Create(from_host, to_host), forward_link);
-                //Simulator.LinksBySrcDest.Add(Tuple.Create(to_host, from_host), reverse_link);
+                Simulator.LinksBySrcDest.Add(new Tuple<Node, Node>(from_node, to_node), forward_link);
+                Simulator.LinksBySrcDest.Add(new Tuple<Node, Node>(to_node, from_node), reverse_link);
                 
                 Console.WriteLine(link_name);
             }
@@ -111,8 +119,8 @@ namespace simulator
             foreach (XmlNode flow_node in flow_list)
             {
                 string flow_name = flow_node.Attributes["name"].Value;
-                Host flow_from_host = (Host)Simulator.Nodes[flow_node.Attributes["from"].Value];
-                Host flow_to_host = (Host)Simulator.Nodes[flow_node.Attributes["to"].Value];
+                Host flow_from_host = Simulator.Hosts[flow_node.Attributes["from"].Value];
+                Host flow_to_host = Simulator.Hosts[flow_node.Attributes["to"].Value];
                 eqp.Add(Convert.ToDouble(flow_node.Attributes["start_time"].Value),
                 flow_from_host.SetupSend(flow_to_host.ip, Convert.ToInt64(flow_node.Attributes["pkt_count"].Value)));
                 flow_from_host.hStat.flows[0].flow_name = flow_name;
@@ -120,6 +128,7 @@ namespace simulator
                 Console.WriteLine(flow_name);
             }
             #endregion
+            
             LogFilePath = xmlDoc.GetElementsByTagName("LogFilePath")[0].Attributes["path"].Value;
             Console.WriteLine("Log File Path = " + LogFilePath);
             Logger.InitLogFile();

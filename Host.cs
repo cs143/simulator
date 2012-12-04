@@ -1,18 +1,25 @@
-using IP = System.Int32;
 using System;
 
-namespace simulator {
+using IP = System.String;
 
-public class Host:DumbNode {
-    // STATIC
+namespace simulator
+{
 
-    // SHARED
-    public readonly EventQueueProcessor eqp;
+public class Host : Node
+{
+    #region SHARED
+    public override void RegisterLink(Link link) {
+        if(this.link != null)
+            throw new InvalidOperationException("This Host already has an outbound link");
+        this.link = link;
+    }
+    private Link link { get; set; }
     private int expected_seq_num = 0; // seq number for the next packet
     public FlowReceive flow_rec_stat = new FlowReceive();
     public HostStatus hStat = new HostStatus();
+    #endregion
 
-    // SENDER SPECIFIC
+    #region SENDER SPECIFIC
     public double window_size { get; protected set; }
     private Int64 bits_to_send = 0;
     private IP dest_ip;
@@ -29,13 +36,12 @@ public class Host:DumbNode {
     // the timeouts that were set in previous 
     private int window_resets = 0;
     private bool is_busy = false;
+    #endregion
 
-    // PUBLIC METHODS
+    #region PUBLIC METHODS
     /* Initializer */
-    public Host(EventQueueProcessor eqp, string name) {
-        this.eqp = eqp;
-        this.name = name;
-        this.hStat.host_name = name;
+    public Host(EventQueueProcessor eqp, IP ip) : base(eqp, ip) {
+        this.hStat.host_name = ip;
         this.hStat.flows = new FlowStatus[1];
         this.hStat.flows[0] = new FlowStatus();
     }
@@ -47,6 +53,7 @@ public class Host:DumbNode {
             if (packet.type == PacketType.ACK) {
                 ProcessACKPacket(packet);
             } else {
+                // FIXME ???
                 //if (r.Next(0, 20) != 0) {
                     ProcessDataPacket(packet);
                 //} else {
@@ -68,12 +75,12 @@ public class Host:DumbNode {
     }
 
     public override string ToString() {
-        string tmpl = "<Host ip={0} name={1} window_size={2:0.00} seq_num={3}";
-        tmpl += " ack_num={4} bits_to_send={5}>";
-        return string.Format(tmpl, ip, name, window_size, next_seq_num, ack_num, bits_to_send);
+        return string.Format("<Host ip={0} window_size={2:0.00} seq_num={3} ack_num={4} bits_to_send={5}>",
+            ip, null, window_size, next_seq_num, ack_num, bits_to_send);
     }
+    #endregion
 
-    // PRIVATE METHODS THAT DO NOT USE TCP STRATEGY
+    #region PRIVATE METHODS THAT DO NOT USE TCP STRATEGY
     private Event SendPacket() {
         return () => {
             if (HasPacketsToSend() && !is_busy) _SendPacket();
@@ -88,6 +95,7 @@ public class Host:DumbNode {
         return false;
     }
 
+    // FIXME
     private void _SendPacket() {
         var packet = new Packet{
             payload_size=Packet.DEFAULT_PAYLOAD_SIZE,
@@ -100,7 +108,7 @@ public class Host:DumbNode {
         // TODO re-implement
         // Console.WriteLine(name+":"+eqp.current_time+": Sending " + packet);
         double completion_time = eqp.current_time + packet.size / link.rate;
-        eqp.Add(eqp.current_time, link.ReceivePacket(packet));
+        eqp.Add(eqp.current_time, link.EnqueuePacket(packet));
         is_busy = true;
         this.next_seq_num += 1;
         // if HasPacketsToSend() == false, it will be idempotent
@@ -119,6 +127,7 @@ public class Host:DumbNode {
     }
 
     private void ProcessDataPacket(Packet packet) {
+        System.Console.WriteLine(ip + " received " + packet + " at " + eqp.current_time);
         if (packet.seq_num == expected_seq_num) {
             expected_seq_num++;
             // ack should be issued for every packet, but for now
@@ -129,11 +138,12 @@ public class Host:DumbNode {
                                     seq_num=expected_seq_num,
                                     timestamp=packet.timestamp};
             // Console.WriteLine(name+":"+eqp.current_time+": Sending " + ack_p);
-            eqp.Add(eqp.current_time, link.ReceivePacket(ack_p));
+            eqp.Add(eqp.current_time, link.EnqueuePacket(ack_p));
         }
     }
+    #endregion
 
-    // PRIVATE METHODS THAT USE TCP STRATEGY
+    #region PRIVATE METHODS THAT USE TCP STRATEGY
     private void ProcessACKPacket(Packet packet) {
         this.tcp_strat.ProcessAck(packet, eqp.current_time);
         UpdateTCPState();
@@ -166,6 +176,7 @@ public class Host:DumbNode {
         }
         Console.WriteLine(eqp.current_time + "\t" + window_size + "\t" + this.tcp_strat);
     }
+    #endregion
 }
 
 }
