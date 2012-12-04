@@ -54,6 +54,7 @@ namespace simulator
             string fileName = Console.ReadLine();
             if (fileName == "" || fileName == null) fileName = "./config.xml";
             xmlDoc.Load(fileName);
+            #region Nodes
             #region Populate Hosts
             Simulator.Hosts = new Dictionary<string, Host>();
             XmlNodeList HostList = xmlDoc.GetElementsByTagName("Host");
@@ -74,6 +75,15 @@ namespace simulator
                 Simulator.Routers.Add(router_name, new simulator.Router(eqp, router_name));
             }
             #endregion
+            // TODO Is there a more elegant way to do this?
+            Nodes = Hosts.Select(e => new KeyValuePair<IP, Node>(e.Key, e.Value))
+                .Concat(Routers.Select(e => new KeyValuePair<IP, Node>(e.Key, e.Value)))
+                .ToDictionary(pair => pair.Key, pair => pair.Value);
+                // ((IDictionary<IP, Node>)Hosts).Concat<Node>(Routers); // union
+            
+            //.SelectMany(dict => dict)
+              //  .ToDictionary(pair => pair.Key, pair => pair.Value);
+            #endregion
             #region Populate Links
             Simulator.Links = new Dictionary<string, Link>();
             Simulator.LinksBySrcDest = new Dictionary<Tuple<Node, Node>, Link>();
@@ -81,25 +91,25 @@ namespace simulator
             foreach (XmlNode link_node in link_list)
             {
                 string link_name = link_node.Attributes["name"].Value;
-                string host_to_name = link_node.Attributes["to"].Value;
-                string host_from_name = link_node.Attributes["from"].Value;
-                Host to_host = Simulator.Hosts[host_to_name];
-                Host from_host = Simulator.Hosts[host_from_name];
-                Link forward_link = new Link(eqp, link_name, to_host,
+                string node_to_name = link_node.Attributes["to"].Value;
+                string node_from_name = link_node.Attributes["from"].Value;
+                Node to_node = Simulator.Nodes[node_to_name];
+                Node from_node = Simulator.Nodes[node_from_name];
+                Link forward_link = new Link(eqp, link_name, to_node,
                     Convert.ToDouble(link_node.Attributes["rate"].Value),
                     Convert.ToDouble(link_node.Attributes["prop_delay"].Value),
                     Convert.ToInt64(link_node.Attributes["buffer_size"].Value));
-                from_host.link = forward_link;
-                Link reverse_link = new Link(eqp, link_name + "_Reverse", from_host,
-                     Convert.ToDouble(link_node.Attributes["rate"].Value),
+                from_node.link = forward_link;
+                Link reverse_link = new Link(eqp, link_name + "_Reverse", from_node,
+                    Convert.ToDouble(link_node.Attributes["rate"].Value),
                     Convert.ToDouble(link_node.Attributes["prop_delay"].Value),
                     Convert.ToInt64(link_node.Attributes["buffer_size"].Value));
-                to_host.link = reverse_link;
+                to_node.link = reverse_link;
                 
                 Simulator.Links.Add(forward_link.name, forward_link);
                 Simulator.Links.Add(reverse_link.name, reverse_link);
-                Simulator.LinksBySrcDest.Add(new Tuple<Node, Node>(from_host, to_host), forward_link);
-                Simulator.LinksBySrcDest.Add(new Tuple<Node, Node>(to_host, from_host), reverse_link);
+                Simulator.LinksBySrcDest.Add(new Tuple<Node, Node>(from_node, to_node), forward_link);
+                Simulator.LinksBySrcDest.Add(new Tuple<Node, Node>(to_node, from_node), reverse_link);
                 
                 Console.WriteLine(link_name);
             }
@@ -118,14 +128,6 @@ namespace simulator
                 Console.WriteLine(flow_name);
             }
             #endregion
-            // TODO Is there a more elegant way to do this?
-            Nodes = Hosts.Select(e => new KeyValuePair<IP, Node>(e.Key, e.Value))
-                .Concat(Routers.Select(e => new KeyValuePair<IP, Node>(e.Key, e.Value)))
-                .ToDictionary(pair => pair.Key, pair => pair.Value);
-                // ((IDictionary<IP, Node>)Hosts).Concat<Node>(Routers); // union
-            
-            //.SelectMany(dict => dict)
-              //  .ToDictionary(pair => pair.Key, pair => pair.Value);
             
             LogFilePath = xmlDoc.GetElementsByTagName("LogFilePath")[0].Attributes["path"].Value;
             Console.WriteLine("Log File Path = " + LogFilePath);
