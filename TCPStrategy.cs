@@ -115,8 +115,8 @@ public class TCPReno : TCPStrategy {
 public class TCPFast : TCPStrategy {
     static double ROUNDTRIP_AVG_RATE = 0.25; // between 0 and 1
     private double window_size = 1;
-    private double rt_avg = 1000;
-    private double rt_dev = 1000;
+    private double rt_avg = 10000000;
+    private double rt_dev = 10000000;
     private int biggest_ack = 0;
     private int dup_cnt = 0;
     private bool reset_seq = false;
@@ -142,9 +142,6 @@ public class TCPFast : TCPStrategy {
         AdjustWindowPerAck();
     }
 
-    /**
-      set window_size to 1, and go into slow state
-    */
     public void ProcessTimeout(Packet pkt, Time current_time) {
         reset_seq = true;
     }
@@ -175,7 +172,7 @@ public class TCPFast : TCPStrategy {
     public bool ResetSeq() { return reset_seq; }
 
     public override string ToString() {
-        string tmpl = "<TCPReno window_size={0:0.00} timeout={1} ack={2}";
+        string tmpl = "<TCPFast window_size={0:0.00} timeout={1} ack={2}";
         tmpl += " dup_cnt={3} ";
         return string.Format(tmpl, window_size, Timeout(), biggest_ack, dup_cnt);
     }

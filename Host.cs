@@ -57,11 +57,15 @@ public class Host:DumbNode {
     }
 
     // TODO strategy
-    public Event SetupSend(IP ip, Int64 bits_to_send) {
+    public Event SetupSend(IP ip, Int64 bits_to_send, string algo) {
         return () => {
             this.bits_to_send = bits_to_send;
             this.dest_ip = ip;
-            this.tcp_strat = new TCPReno();
+            if (algo == "reno") {
+                this.tcp_strat = new TCPReno();
+            } else if (algo == "fasttcp") {
+                this.tcp_strat = new TCPFast();
+            }
             UpdateTCPState();
             eqp.Add(eqp.current_time, SendPacket());
         };
