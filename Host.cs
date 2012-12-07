@@ -65,6 +65,7 @@ public class Host:DumbNode {
                 this.tcp_strat = new TCPReno();
             } else if (algo == "fasttcp") {
                 this.tcp_strat = new TCPFast();
+                eqp.Add(eqp.current_time, UpdateWindowSize());
             }
             UpdateTCPState();
             eqp.Add(eqp.current_time, SendPacket());
@@ -119,6 +120,16 @@ public class Host:DumbNode {
         return () => {
             is_busy = false;
             eqp.Add(eqp.current_time, SendPacket());
+        };
+    }
+
+    private Event UpdateWindowSize() {
+        return () => {
+            tcp_strat.UpdateWindowSize();
+            this.window_size = this.tcp_strat.WindowSize();
+            if (this.next_seq_num * Packet.DEFAULT_PAYLOAD_SIZE < this.bits_to_send) {
+                eqp.Add(eqp.current_time + 0.020, UpdateWindowSize());
+            }
         };
     }
 

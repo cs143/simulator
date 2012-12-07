@@ -9,6 +9,7 @@ interface TCPStrategy {
     double Timeout();
     int BiggestAck();
     bool ResetSeq();
+    void UpdateWindowSize();
 }
 
 public class TCPReno : TCPStrategy {
@@ -39,6 +40,8 @@ public class TCPReno : TCPStrategy {
     if pkt.ack_num < prev_ack
         we can ignore this, since eventually things will time out
     */
+
+    public void UpdateWindowSize() { } // idempotent
 
     public void ProcessAck(Packet pkt, Time current_time) {
         if (pkt.seq_num == 1) { // first packet
@@ -139,13 +142,16 @@ public class TCPFast : TCPStrategy {
             if (dup_cnt == 3) { reset_seq = true; }
             else { reset_seq = false; }
         }
-        AdjustWindowPerAck();
     }
 
     public void ProcessTimeout(Packet pkt, Time current_time) {
         reset_seq = true;
     }
 
+    // call this every 20 ms
+    public void UpdateWindowSize() {
+        window_size = window_size * base_rtt / rt_avg + 3.0;
+    }
 
     private void AdjustTimeout(Time rt, bool reset) {
         // Textbook Page 92
@@ -159,11 +165,6 @@ public class TCPFast : TCPStrategy {
             rt_avg = (1-b)*rt_avg + b*rt;
             rt_dev = (1-b)*rt_dev + b*System.Math.Abs(rt - rt_avg);
         }
-    }
-
-    // call after adjusting timeout
-    private void AdjustWindowPerAck() {
-        window_size = window_size * base_rtt / rt_avg + 3.0 / window_size;
     }
 
     public double WindowSize() { return window_size; } 
