@@ -67,15 +67,23 @@ namespace SimGrapher
         }
         public Link[] GetLinkStatusList(XDocument xmlDoc)
         {
+            int actcnt=0;
             var linkList = (from item in xmlDoc.Descendants("LinkStatus")
                             select item.Attribute("link_name").Value
                  ).Distinct();
-            Link[] list = new Link[linkList.Count()];
+            foreach (var lame in linkList)
+                if (!(lame.IndexOf("Reverse")>0))
+                {
+                    actcnt++;
+                }
+
+            Link[] list = new Link[actcnt];
             int count = 0;
             double TotTime = Convert.ToDouble(xmlDoc.Descendants("TotalTime").First().Value);
             double TimeInterval = TotTime / 100;
             foreach (var link in linkList)
             {
+                if (link.IndexOf("Reverse")>0) continue;
                 list[count] = new Link();
                 list[count].name = link;
                 list[count].buffer_size_list = GetBufferSizeList(xmlDoc, link);
@@ -108,7 +116,7 @@ namespace SimGrapher
                         dropped_packet_rate = (realDpCount - lastDpCount) / TimeInterval;
                         lastDpCount = realDpCount;
                         Int64 realDelCount = Convert.ToInt64(crappyDPackItem.lr_count);
-                        link_rate = (realDelCount - lastDelCount)  / TimeInterval;
+                        link_rate = (realDelCount - lastDelCount)  / (TimeInterval*125);
                         lastDelCount = realDelCount;
                     }
                     list[count].droppedPacketList.Add((j + 1) * TimeInterval, dropped_packet_rate);
@@ -188,7 +196,7 @@ namespace SimGrapher
                 foreach (var pt2 in rec_item)
                 {
                     double x = (double)pt2.time;
-                    double y = ((double)pt2.rec_count - prev_count) / ((double)pt2.time - prev_time);
+                    double y = ((double)pt2.rec_count - prev_count) / (125*((double)pt2.time - prev_time));
                     list[count].flow_rate_list.Add(x, y);
                     prev_time = x;
                     prev_count = (double)pt2.rec_count;
@@ -204,7 +212,7 @@ namespace SimGrapher
             ZedGraph.SymbolType[] GraphSymbols = { SymbolType.Circle, SymbolType.Diamond, SymbolType.TriangleDown, SymbolType.Square, SymbolType.Star, SymbolType.Triangle };
             // Set the titles and axis labels
             myPane.Title.Text = "";
-            myPane.XAxis.Title.Text = "Time, ms";
+            myPane.XAxis.Title.Text = "Time, s";
             myPane.YAxis.Title.Text = "window size";
 
             /*myPane.Legend.Position = LegendPos.Float;
@@ -263,7 +271,7 @@ namespace SimGrapher
             // Set the titles and axis labels
             myPane.Title.Text = "";
             myPane.XAxis.Title.Text = "Time, s";
-            myPane.YAxis.Title.Text = "Flow rate (packets/s)";
+            myPane.YAxis.Title.Text = "Flow rate (Mbps)";
 
             /*myPane.Legend.Position = LegendPos.Float;
             myPane.Legend.Location = new Location(0.95, 0.15, CoordType.PaneFraction,
@@ -390,7 +398,7 @@ namespace SimGrapher
             // Set the titles and axis labels
             myPane.Title.Text = "";
             myPane.XAxis.Title.Text = "Time, s";
-            myPane.YAxis.Title.Text = "Link rate (packets/s)";
+            myPane.YAxis.Title.Text = "Link rate (Mbps)";
 
             /*myPane.Legend.Position = LegendPos.Float;
             myPane.Legend.Location = new Location(0.95, 0.15, CoordType.PaneFraction,
