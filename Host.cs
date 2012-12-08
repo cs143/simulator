@@ -38,16 +38,18 @@ public class Host:DumbNode {
     }
 
     /* Main receive event */
+    Random r = new Random();
+    int randomized = 0;
     public override Event ReceivePacket(Packet packet) {
         return () => {
             if (packet.type == PacketType.ACK) {
                 ProcessACKPacket(packet);
             } else {
-                //Random r = new Random();
-                //if (r.Next(0, 20) != 0) {
-                    ProcessDataPacket(packet);
+                //if (r.Next(0, 70) == 0 && randomized < 999) {
+                    Console.WriteLine(name+": Ignoring " + packet + this);
+                //    randomized++;
                 //} else {
-                //    Console.WriteLine(name+": Ignoring " + packet + this);
+                    ProcessDataPacket(packet);
                 //}
             }
         };
@@ -133,17 +135,16 @@ public class Host:DumbNode {
         //Console.WriteLine("GOT " + packet + expected_seq_num);
         if (packet.seq_num == expected_seq_num) {
             expected_seq_num++;
-            // ack should be issued for every packet, but for now
-            var ack_p = new Packet{payload_size=Packet.DEFAULT_ACK_SIZE,
-                                    src=this.ip,
-                                    dest=link.dest.ip,
-                                    type=PacketType.ACK,
-                                    seq_num=expected_seq_num,
-                                    timestamp=packet.timestamp};
-            // Console.WriteLine(name+":"+eqp.current_time+": Sending " + ack_p);
-            // Console.WriteLine("SENDING " + ack_p);
-            eqp.Add(eqp.current_time, link.ReceivePacket(ack_p));
         }
+        var ack_p = new Packet{payload_size=Packet.DEFAULT_ACK_SIZE,
+                                src=this.ip,
+                                dest=link.dest.ip,
+                                type=PacketType.ACK,
+                                seq_num=expected_seq_num,
+                                timestamp=packet.timestamp};
+        // Console.WriteLine(name+":"+eqp.current_time+": Sending " + ack_p);
+        // Console.WriteLine("SENDING " + ack_p);
+        eqp.Add(eqp.current_time, link.ReceivePacket(ack_p));
     }
 
     // PRIVATE METHODS THAT USE TCP STRATEGY
@@ -152,11 +153,14 @@ public class Host:DumbNode {
         if (packet.seq_num >= ack_num && packet.seq_num <= next_seq_num) {
             this.tcp_strat.ProcessAck(packet, eqp.current_time);
             UpdateTCPState();
-            eqp.Add(eqp.current_time, SendPacket());
+            if (this.tcp_strat.ResetSeq()) {
+                window_resets++;
+            }
         }
         else {
             Console.WriteLine(eqp.current_time + ": Dropping ack" + packet);
         }
+        eqp.Add(eqp.current_time, SendPacket());
     }
 
     private Event CheckTimeout(Packet packet, int resets) {

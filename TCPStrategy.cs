@@ -1,4 +1,5 @@
 using Time = System.Double;
+using System;
 
 namespace simulator {
 
@@ -52,27 +53,40 @@ public class TCPReno : TCPStrategy {
         }
         if (pkt.seq_num > this.biggest_ack) {
             this.biggest_ack = pkt.seq_num;
-            this.dup_cnt = 0;
-            if (slow_start) {
-                window_size++;
-                if (window_size > slow_start_thresh) {
-                    slow_start = false;
-                    System.Console.WriteLine("SS to CA :" + this);
-                }
-            } else { // Congestion Avoidance
-                window_size += 1/window_size;
-            }
-            reset_seq = false;
-        }
-        else if (pkt.seq_num == this.biggest_ack) {
-            this.dup_cnt++;
-            if (dup_cnt == 3) {
-                window_size = System.Math.Max(2.0, window_size/2.0);
+            if (dup_cnt > 2) {
+                this.dup_cnt = 0;
+                window_size = slow_start_thresh;   
+                // finished fast recovery
+                // time for congestion avoidance
                 slow_start = false;
                 reset_seq = true;
                 System.Console.WriteLine("CA:" + this);
             }
             else {
+                this.dup_cnt = 0;
+                if (slow_start) {
+                    window_size++;
+                    if (window_size > slow_start_thresh) {
+                        slow_start = false;
+                        System.Console.WriteLine("SS to CA :" + this);
+                    }
+                } else { // Congestion Avoidance
+                    window_size += 1/window_size;
+                }
+                reset_seq = false;
+            }
+        }
+        else if (pkt.seq_num == this.biggest_ack) {
+            this.dup_cnt++;
+            if (dup_cnt == 2) {
+                slow_start_thresh = System.Math.Max(2.0, window_size / 2.0);
+                window_size = 1; // effectively resends a single packet
+                slow_start = false;
+                reset_seq = true;
+                System.Console.WriteLine("FAST TRANSMIT:" + this);
+            }
+            else {
+                //window_size++;
                 reset_seq = false;
             }
         }
