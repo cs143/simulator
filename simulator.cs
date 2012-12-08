@@ -122,13 +122,13 @@ namespace simulator
                 Simulator.LinksBySrcDest.Add(new Tuple<Node, Node>(to_node, from_node), reverse_link);
 
                 // events for dynamic cost calculation
-                /*double calc_at = -frequency/5;
+                double calc_at = -frequency/5;
                 while (calc_at <= duration) {
                     eqp.Add(calc_at, forward_link.CalculateCost());
                     eqp.Add(calc_at, reverse_link.CalculateCost());
                     calc_at += frequency/5;
+                    Console.WriteLine(calc_at);
                 }
-                */
                 
                 Console.WriteLine(link_name);
             }
@@ -149,6 +149,28 @@ namespace simulator
             #endregion
             
             LogFilePath = xmlDoc.GetElementsByTagName("LogFilePath")[0].Attributes["path"].Value;
+            XmlNodeList TimeNodeList = xmlDoc.GetElementsByTagName("TotalTime");
+            if (TimeNodeList.Count > 0)
+            {
+                eqp.total_time = Convert.ToDouble(TimeNodeList[0].InnerText);
+            }
+            XmlNodeList SampleRateList = xmlDoc.GetElementsByTagName("SampleRate");
+            double sample_rate = 0;
+            if (SampleRateList.Count > 0)
+            {
+                sample_rate = Convert.ToDouble(SampleRateList[0].InnerText);
+            }
+            if ((sample_rate > 0) && (eqp.total_time > 0))
+            {
+                double time_interval = 1.0 / sample_rate;
+                double next_time = 0;
+                for (int j = 0; (j * time_interval) < Math.Ceiling(eqp.total_time); j++)
+                {
+                    next_time = next_time + time_interval;
+                    eqp.Add(next_time, Logger.LogEverything());
+                }
+            }
+            
             Console.WriteLine("Log File Path = " + LogFilePath);
             Logger.InitLogFile();
             Console.WriteLine("Press enter to continue => ");

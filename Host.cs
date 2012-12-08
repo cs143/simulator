@@ -41,6 +41,8 @@ public class Host : Node
         this.hStat.host_name = ip;
         this.hStat.flows = new FlowStatus[1];
         this.hStat.flows[0] = new FlowStatus();
+        this.hStat.flows[0].flow_name = "";
+        this.flow_rec_stat.flow_name = "";
     }
 
     /* Main receive event */
@@ -116,7 +118,7 @@ public class Host : Node
         eqp.Add(completion_time + this.timeout, CheckTimeout(packet, window_resets));
         hStat.flows[0].time = eqp.current_time;
         hStat.flows[0].window_size = window_size;
-        Logger.LogHostStatus(hStat);
+        //Logger.LogHostStatus(hStat);
     }
 
     private Event CompleteSend() {
@@ -150,6 +152,7 @@ public class Host : Node
         // Console.WriteLine(name+":"+eqp.current_time+": Sending " + ack_p);
         // Console.WriteLine("SENDING " + ack_p);
         eqp.Add(eqp.current_time, link.EnqueuePacket(ack_p));
+        this.flow_rec_stat.received_packets++;
     }
     #endregion
 
@@ -192,7 +195,7 @@ public class Host : Node
         if (this.tcp_strat.ResetSeq()) {
             this.next_seq_num = this.ack_num;
         }
-        Console.WriteLine(eqp.current_time + "\t" + window_size + "\t" + this.tcp_strat);
+        //Console.WriteLine(ip + ":" + eqp.current_time + "\t" + window_size + "\t" + this.tcp_strat);
     }
     #endregion
 }
