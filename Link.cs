@@ -7,12 +7,26 @@ public class Link {
     public readonly EventQueueProcessor eqp;
     public readonly Node dest;
     public readonly double rate;
+    //public double cost;
+
     public double cost {
         get {
-            // TODO Use better cost calculation
             return 1.0 / rate;
         }
     }
+
+    private int prev_delivered_packets = 0;
+    private double prev_calc_time = -10000;
+    /*
+    public Event CalculateCost () {
+        return () => {
+            cost = (lStatus.delivered_packets - prev_delivered_packets) / System.Math.Abs(eqp.current_time - prev_calc_time);
+            cost = System.Math.Min(cost, 1);
+            prev_calc_time = eqp.current_time;
+            prev_delivered_packets = lStatus.delivered_packets;
+        };
+    }
+    */
 
     public readonly double prop_delay;
     public string name;
@@ -51,17 +65,17 @@ public class Link {
             if (!this.is_transmitting)
             {
                 TransmitPacket(packet);
-                // Console.WriteLine("transmitting " + packet);
+                //Console.WriteLine(name + ":transmitting " + packet);
             }
             else if (this.buffer.Count < this.buffer_size)
             {
                 this.buffer.Enqueue(packet);
-                //Console.WriteLine("queueing " + packet);
+                //Console.WriteLine(name + ":queueing " + packet);
             }
             else
             {
                 this.lStatus.dropped_packets++;
-                // Console.WriteLine("dropping " + packet);
+                Console.WriteLine("dropping " + packet);
             }
             Logger.LogLinkStatus(lStatus);
         };
@@ -86,6 +100,7 @@ public class Link {
             if (this.buffer.Count > 0)
             {
                 Packet nextPkt = this.buffer.Dequeue();
+                //Console.WriteLine(name + ":transmitting " + nextPkt);
                 TransmitPacket(nextPkt);
             }
             this.lStatus.delivered_packets++;

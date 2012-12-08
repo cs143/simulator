@@ -18,8 +18,7 @@
   </Links>
   </Topology>
   <Flows>
-    <Flow name="F1" from="Host1" to="Host2" pkt_count="160000000" start_time="10" algorithm="reno"/>
+    <Flow name="F1" from="Host1" to="Host2" pkt_count="160000000" start_time="10" algorithm="fasttcp"/>
   </Flows>
   <LogFilePath path="log.xml" />
-  <Routing duration="30" frequency="5" />
 </Simulator>
