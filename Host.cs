@@ -192,7 +192,7 @@ public class Host : Node
         if (this.tcp_strat.ResetSeq()) {
             this.next_seq_num = this.ack_num;
         }
-        Console.WriteLine(eqp.current_time + "\t" + window_size + "\t" + this.tcp_strat);
+        //Console.WriteLine(ip + ":" + eqp.current_time + "\t" + window_size + "\t" + this.tcp_strat);
     }
     #endregion
 }

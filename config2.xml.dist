@@ -33,4 +33,5 @@
     <Flow name="F3" from="S3" to="T3" pkt_count="300000000" start_time="20" algorithm="reno"/>
   </Flows>
   <LogFilePath path="log.xml" />
+  <Routing duration="200" frequency="5" />
 </Simulator>
