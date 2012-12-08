@@ -40,10 +40,10 @@ public class Router : Node
         return () => {
             if(routing_table == null)
                 throw new InvalidOperationException("Cannot route packets before routing table is calculated");
-            //Console.WriteLine(packet);
+            //Simulator.Message(packet);
             Node next = routing_table[Simulator.Nodes[packet.dest]];
             Link to_next = Simulator.LinksBySrcDest[Tuple.Create((Node)this, next)];
-            ///Console.WriteLine(ip + ":sending " + to_next + packet);
+            ///Simulator.Message(ip + ":sending " + to_next + packet);
             eqp.Add(eqp.current_time, to_next.EnqueuePacket(packet));
         };
     }
@@ -107,7 +107,10 @@ public class Router : Node
         var other_nodes = Simulator.Nodes.Values
             .Where(n => n != this);
         routing_table = other_nodes.ToDictionary(n => n, n => FirstHopOnShortestPath(n, shortest_paths_tree));
-        Simulator.Message("{0}'s new routing table: {1}", this.ip, routing_table.ToList().ToDelimitedString());
+        Simulator.Message("{0}'s new routing table: {1}",
+            this.ip,
+            routing_table.Select(kv => string.Format("→{0}:{1}", kv.Key.ip, kv.Value.ip)).ToDelimitedString(", ")
+        );
     }
     /// <returns>
     /// Event that tells this Router to recalculate its routing table.

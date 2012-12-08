@@ -61,7 +61,7 @@ namespace simulator
             foreach (XmlNode hostNode in HostList)
             {
                 string hostName = hostNode.Attributes["name"].Value;
-                Console.WriteLine(hostName);
+                Console.WriteLine("Initializing host {0}", hostName);
                 Simulator.Hosts.Add(hostName, new Host(eqp, hostName));
             }
             #endregion
@@ -74,7 +74,7 @@ namespace simulator
             foreach (XmlNode router_node in router_list)
             {
                 string router_name = router_node.Attributes["name"].Value;
-                Console.WriteLine(router_name);
+                Console.WriteLine("Initializing router {0}", router_name);
                 simulator.Router r = new simulator.Router(eqp, router_name);
                 Simulator.Routers.Add(router_name, r);
                 // Calculate routing tables at least once before flows start; align to 0
@@ -127,10 +127,9 @@ namespace simulator
                     eqp.Add(calc_at, forward_link.CalculateCost());
                     eqp.Add(calc_at, reverse_link.CalculateCost());
                     calc_at += frequency/5;
-                    Console.WriteLine(calc_at);
                 }
                 
-                Console.WriteLine(link_name);
+                Console.WriteLine("Initialized link {0}", link_name);
             }
             #endregion
             #region Populate Flows
@@ -144,7 +143,7 @@ namespace simulator
                 flow_from_host.SetupSend(flow_to_host.ip, Convert.ToInt64(flow_node.Attributes["pkt_count"].Value), flow_node.Attributes["algorithm"].Value));
                 flow_from_host.hStat.flows[0].flow_name = flow_name;
                 flow_to_host.flow_rec_stat.flow_name = flow_name;
-                Console.WriteLine(flow_name);
+                Console.WriteLine("Initialized flow {0}", flow_name);
             }
             #endregion
             

@@ -24,7 +24,7 @@ public class Link {
         return () => {
             cost = (lStatus.delivered_packets - prev_delivered_packets) / System.Math.Abs(eqp.current_time - prev_calc_time);
             cost = System.Math.Max(cost,1);// + prop_delay;
-            Console.WriteLine(this.name + ":" + cost);
+            Simulator.Message(this.name + "'s new cost = " + cost);
             prev_calc_time = eqp.current_time;
             prev_delivered_packets = lStatus.delivered_packets;
         };
@@ -67,17 +67,17 @@ public class Link {
             if (!this.is_transmitting)
             {
                 TransmitPacket(packet);
-                //Console.WriteLine(name + ":transmitting " + packet);
+                //Simulator.Message(name + ":transmitting " + packet);
             }
             else if (this.buffer.Count < this.buffer_size)
             {
                 this.buffer.Enqueue(packet);
-                //Console.WriteLine(name + ":queueing " + packet);
+                //Simulator.Message(name + ":queueing " + packet);
             }
             else
             {
                 this.lStatus.dropped_packets++;
-                Console.WriteLine("dropping " + packet);
+                Simulator.Message("dropping " + packet);
             }
             //Logger.LogLinkStatus(lStatus);
         };
@@ -102,7 +102,7 @@ public class Link {
             if (this.buffer.Count > 0)
             {
                 Packet nextPkt = this.buffer.Dequeue();
-                //Console.WriteLine(name + ":transmitting " + nextPkt);
+                //Simulator.Message(name + ":transmitting " + nextPkt);
                 TransmitPacket(nextPkt);
             }
             this.lStatus.delivered_packets++;

@@ -108,7 +108,7 @@ public class Host : Node
             seq_num=this.next_seq_num,
             timestamp = eqp.current_time
         };
-        //Console.WriteLine(name+":"+eqp.current_time+": Sending " + packet);
+        //Simulator.Message(name+":"+eqp.current_time+": Sending " + packet);
         double completion_time = eqp.current_time + packet.size / link.rate;
         eqp.Add(eqp.current_time, link.EnqueuePacket(packet));
         is_busy = true;
@@ -139,7 +139,7 @@ public class Host : Node
     }
 
     private void ProcessDataPacket(Packet packet) {
-        //Console.WriteLine("GOT " + packet + expected_seq_num);
+        //Simulator.Message("GOT " + packet + expected_seq_num);
         if (packet.seq_num == expected_seq_num) {
             expected_seq_num++;
         }
@@ -149,8 +149,8 @@ public class Host : Node
                                 type=PacketType.ACK,
                                 seq_num=expected_seq_num,
                                 timestamp=packet.timestamp};
-        // Console.WriteLine(name+":"+eqp.current_time+": Sending " + ack_p);
-        // Console.WriteLine("SENDING " + ack_p);
+        // Simulator.Message(name+":"+eqp.current_time+": Sending " + ack_p);
+        // Simulator.Message("SENDING " + ack_p);
         eqp.Add(eqp.current_time, link.EnqueuePacket(ack_p));
         this.flow_rec_stat.received_packets++;
     }
@@ -158,7 +158,7 @@ public class Host : Node
 
     #region PRIVATE METHODS THAT USE TCP STRATEGY
     private void ProcessACKPacket(Packet packet) {
-        //Console.WriteLine(eqp.current_time + ": Received ack" + packet);
+        //Simulator.Message(eqp.current_time + ": Received ack" + packet);
         if (packet.seq_num >= ack_num && packet.seq_num <= next_seq_num) {
             this.tcp_strat.ProcessAck(packet, eqp.current_time);
             UpdateTCPState();
@@ -167,7 +167,7 @@ public class Host : Node
             }
         }
         else {
-            Console.WriteLine(eqp.current_time + ": Dropping ack" + packet);
+            Simulator.Message(eqp.current_time + ": Dropping ack" + packet);
         }
         eqp.Add(eqp.current_time, SendPacket());
     }
@@ -178,7 +178,7 @@ public class Host : Node
                 packet.seq_num < next_seq_num &&
                 window_resets == resets) {
                 // timed out
-                Console.WriteLine(eqp.current_time + "TIMED OUT " + packet);
+                Simulator.Message(eqp.current_time + "TIMED OUT " + packet);
                 window_resets++;
                 this.tcp_strat.ProcessTimeout(packet, eqp.current_time);
                 UpdateTCPState();
@@ -195,7 +195,7 @@ public class Host : Node
         if (this.tcp_strat.ResetSeq()) {
             this.next_seq_num = this.ack_num;
         }
-        //Console.WriteLine(ip + ":" + eqp.current_time + "\t" + window_size + "\t" + this.tcp_strat);
+        //Simulator.Message(ip + ":" + eqp.current_time + "\t" + window_size + "\t" + this.tcp_strat);
     }
     #endregion
 }
