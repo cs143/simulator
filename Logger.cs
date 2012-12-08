@@ -28,6 +28,8 @@ namespace simulator
         public static StreamWriter asw;
         public static void LogHostStatus(HostStatus hStat)
         {
+            if (hStat.flows.Length == 0) return;
+            if (hStat.flows[0].flow_name == "") return;
             LogCreator<HostStatus> lc = new LogCreator<HostStatus>();
             lc.LogEntry(hStat);
         }
@@ -38,6 +40,7 @@ namespace simulator
         }
         public static void LogFlowRecStatus(FlowReceive frStat)
         {
+            if (frStat.flow_name == "") return;
             LogCreator<FlowReceive> lc = new LogCreator<FlowReceive>();
             lc.LogEntry(frStat);
         }
@@ -59,6 +62,25 @@ namespace simulator
                 asw.WriteLine("<TotalTime>"+Simulator.eqp.current_time+"</TotalTime>");
                 asw.WriteLine("</Logging>");
                 asw.Close();
+        }
+        public static Event LogEverything()
+        {
+            return () =>
+            {
+                foreach (Node n in Simulator.Nodes.Values)
+                {
+                    if (n.GetType() == typeof(Host))
+                    {
+                        Host h = (Host)n;
+                        Logger.LogHostStatus(h.hStat);
+                        Logger.LogFlowRecStatus(h.flow_rec_stat);
+                    }
+                }
+                foreach (Link l in Simulator.Links.Values)
+                {
+                    Logger.LogLinkStatus(l.lStatus);
+                }
+            };
         }
         public static void TestLogging()
         {
@@ -107,14 +129,28 @@ namespace simulator
         [XmlAttribute]
         public double window_size;//0 if flow has not started
         [XmlAttribute]
-        public double time;
+        public double time
+        {
+            get
+            {
+                return Simulator.eqp.current_time;
+            }
+            set { }
+        }
     }
     public struct FlowReceive
     {
         [XmlAttribute]
         public string flow_name;
         [XmlAttribute]
-        public double time;
+        public double time
+        {
+            get
+            {
+                return Simulator.eqp.current_time;
+            }
+            set { }
+        }
         [XmlElement]
         public Int64 received_packets;
     }

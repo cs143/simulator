@@ -78,7 +78,7 @@ public class Link {
                 this.lStatus.dropped_packets++;
                 Console.WriteLine("dropping " + packet);
             }
-            Logger.LogLinkStatus(lStatus);
+            //Logger.LogLinkStatus(lStatus);
         };
     }
     private void TransmitPacket(Packet packet)
@@ -105,7 +105,7 @@ public class Link {
                 TransmitPacket(nextPkt);
             }
             this.lStatus.delivered_packets++;
-            Logger.LogLinkStatus(lStatus);
+            //Logger.LogLinkStatus(lStatus);
         };
     }
     public override string ToString() {
