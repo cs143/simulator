@@ -68,11 +68,20 @@ namespace simulator
             #region Populate Routers
             Simulator.Routers = new Dictionary<string, simulator.Router>();
             XmlNodeList router_list = xmlDoc.GetElementsByTagName("Router");
+            XmlNodeList routing_info = xmlDoc.GetElementByTagName("Routing");
+            double duration = Convert.ToDouble(routing_info.Attributes["duration"].Value);
+            double frequency = Convert.ToDouble(routing_info.Attributes["frequency"].Value);
             foreach (XmlNode router_node in router_list)
             {
                 string router_name = router_node.Attributes["name"].Value;
                 Console.WriteLine(router_name);
-                Simulator.Routers.Add(router_name, new simulator.Router(eqp, router_name));
+                simulator.Router r = new simulator.Router(eqp, router_name);
+                Simulator.Routers.Add(router_name, r);
+                double build_at = -frequency;
+                while (build_at <= duration) {
+                    eqp.Add(build_at, r.RecalculateRoutingTableEvent());
+                    build_at += frequency;
+                }
             }
             #endregion
             // TODO Is there a more elegant way to do this?
