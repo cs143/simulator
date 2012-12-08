@@ -9,14 +9,6 @@ public class Link {
     public readonly double rate;
     public double cost;
 
-    /*
-    public double cost {
-        get {
-            return 1.0 / rate;
-        }
-    }
-    */
-
     private long prev_delivered_packets = 0;
     private double prev_calc_time = -10000;
 

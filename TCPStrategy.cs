@@ -97,8 +97,13 @@ public class TCPReno : TCPStrategy {
       set window_size to 1, and go into slow state
     */
     public void ProcessTimeout(Packet pkt, Time current_time) {
-        slow_start_thresh = System.Math.Max(2.0, window_size / 2.0);
-        window_size = 1.0;
+        if (window_size != 1.0) {
+            slow_start_thresh = System.Math.Max(2.0, window_size / 2.0);
+            window_size = 1.0;
+        } else {
+            // go into slow start
+            dup_cnt = 0;
+        }
         reset_seq = true;
         slow_start = true;
         System.Console.WriteLine("SS:" + this);
