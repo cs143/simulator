@@ -34,15 +34,7 @@ namespace simulator
         static void Main()
         {
             Init();
-            /*var factory = NodeFactory.FromConfig();
-            var host1 = new Host(eqp, "kijun");
-            var host2 = new Host(eqp, "mike");
-            factory.CreateLink(eqp, host1, host2);
-            factory.CreateLink(eqp, host2, host1);*/
-
-            //eqp.Add(0.0, host1.SendPacket());
             eqp.Execute();
-            //Logger.TestLogging();
             Console.WriteLine("Press enter to continue => ");
             Console.ReadLine();
             Logger.CloseLogFile();
