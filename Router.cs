@@ -29,6 +29,8 @@ public class Router : Node
     /// </summary>
     public override Event ReceivePacket(Packet packet) {
         return () => {
+            if(routing_table == null)
+                throw new InvalidOperationException("Cannot route packets before routing table is calculated");
             Node next = routing_table[Simulator.Nodes[packet.dest]];
             Link to_next = Simulator.LinksBySrcDest[Tuple.Create((Node)this, next)];
             to_next.EnqueuePacket(packet);
@@ -91,6 +93,13 @@ public class Router : Node
         routing_table = (IDictionary<Node, Node>)shortest_paths_tree.Values
             .Where(n => n != this)
             .Select(n => this.FirstHopOnShortestPath(n, shortest_paths_tree));
+    }
+    /// <returns>
+    /// Event that tells this Router to recalculate its routing table.
+    /// This event should execute at least once prior to any packets being routed.
+    /// </returns>
+    public Event RecalculateRoutingTableEvent() {
+        return () => { this.RecalculateRoutingTable(); };
     }
 }
 
