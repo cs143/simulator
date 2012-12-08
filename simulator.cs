@@ -141,7 +141,7 @@ namespace simulator
                 Host flow_from_host = Simulator.Hosts[flow_node.Attributes["from"].Value];
                 Host flow_to_host = Simulator.Hosts[flow_node.Attributes["to"].Value];
                 eqp.Add(Convert.ToDouble(flow_node.Attributes["start_time"].Value),
-                flow_from_host.SetupSend(flow_to_host.ip, Convert.ToInt64(flow_node.Attributes["pkt_count"].Value)));
+                flow_from_host.SetupSend(flow_to_host.ip, Convert.ToInt64(flow_node.Attributes["pkt_count"].Value), flow_node.Attributes["algorithm"].Value));
                 flow_from_host.hStat.flows[0].flow_name = flow_name;
                 flow_to_host.flow_rec_stat.flow_name = flow_name;
                 Console.WriteLine(flow_name);

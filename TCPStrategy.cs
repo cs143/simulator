@@ -1,4 +1,5 @@
 using Time = System.Double;
+using System;
 
 namespace simulator {
 
@@ -9,6 +10,7 @@ interface TCPStrategy {
     double Timeout();
     int BiggestAck();
     bool ResetSeq();
+    void UpdateWindowSize();
 }
 
 public class TCPReno : TCPStrategy {
@@ -40,6 +42,8 @@ public class TCPReno : TCPStrategy {
         we can ignore this, since eventually things will time out
     */
 
+    public void UpdateWindowSize() { } // idempotent
+
     public void ProcessAck(Packet pkt, Time current_time) {
         if (pkt.seq_num == 1) { // first packet
             AdjustTimeout(current_time - pkt.timestamp, true);
@@ -49,27 +53,40 @@ public class TCPReno : TCPStrategy {
         }
         if (pkt.seq_num > this.biggest_ack) {
             this.biggest_ack = pkt.seq_num;
-            this.dup_cnt = 0;
-            if (slow_start) {
-                window_size++;
-                if (window_size > slow_start_thresh) {
-                    slow_start = false;
-                    System.Console.WriteLine("SS to CA :" + this);
-                }
-            } else { // Congestion Avoidance
-                window_size += 1/window_size;
-            }
-            reset_seq = false;
-        }
-        else if (pkt.seq_num == this.biggest_ack) {
-            this.dup_cnt++;
-            if (dup_cnt == 3) {
-                window_size = System.Math.Max(2.0, window_size/2.0);
+            if (dup_cnt > 2) {
+                this.dup_cnt = 0;
+                window_size = slow_start_thresh;   
+                // finished fast recovery
+                // time for congestion avoidance
                 slow_start = false;
                 reset_seq = true;
                 System.Console.WriteLine("CA:" + this);
             }
             else {
+                this.dup_cnt = 0;
+                if (slow_start) {
+                    window_size++;
+                    if (window_size > slow_start_thresh) {
+                        slow_start = false;
+                        System.Console.WriteLine("SS to CA :" + this);
+                    }
+                } else { // Congestion Avoidance
+                    window_size += 1/window_size;
+                }
+                reset_seq = false;
+            }
+        }
+        else if (pkt.seq_num == this.biggest_ack) {
+            this.dup_cnt++;
+            if (dup_cnt == 2) {
+                slow_start_thresh = System.Math.Max(2.0, window_size / 2.0);
+                window_size = 1; // effectively resends a single packet
+                slow_start = false;
+                reset_seq = true;
+                System.Console.WriteLine("FAST TRANSMIT:" + this);
+            }
+            else {
+                //window_size++;
                 reset_seq = false;
             }
         }
@@ -83,6 +100,7 @@ public class TCPReno : TCPStrategy {
         slow_start_thresh = System.Math.Max(2.0, window_size / 2.0);
         window_size = 1.0;
         reset_seq = true;
+        slow_start = true;
         System.Console.WriteLine("SS:" + this);
     }
 
@@ -100,7 +118,7 @@ public class TCPReno : TCPStrategy {
     }
 
     public double WindowSize() { return window_size; } 
-    public double Timeout() { return rt_avg + 4*rt_dev;}
+    public double Timeout() { return 2*rt_avg + 4*rt_dev;}
     public int BiggestAck() { return biggest_ack; }
     public bool ResetSeq() { return reset_seq; }
 
@@ -115,8 +133,8 @@ public class TCPReno : TCPStrategy {
 public class TCPFast : TCPStrategy {
     static double ROUNDTRIP_AVG_RATE = 0.25; // between 0 and 1
     private double window_size = 1;
-    private double rt_avg = 1000;
-    private double rt_dev = 1000;
+    private double rt_avg = 10000000;
+    private double rt_dev = 10000000;
     private int biggest_ack = 0;
     private int dup_cnt = 0;
     private bool reset_seq = false;
@@ -139,16 +157,16 @@ public class TCPFast : TCPStrategy {
             if (dup_cnt == 3) { reset_seq = true; }
             else { reset_seq = false; }
         }
-        AdjustWindowPerAck();
     }
 
-    /**
-      set window_size to 1, and go into slow state
-    */
     public void ProcessTimeout(Packet pkt, Time current_time) {
         reset_seq = true;
     }
 
+    // call this every 20 ms
+    public void UpdateWindowSize() {
+        window_size = window_size * base_rtt / rt_avg + 3.0;
+    }
 
     private void AdjustTimeout(Time rt, bool reset) {
         // Textbook Page 92
@@ -164,18 +182,13 @@ public class TCPFast : TCPStrategy {
         }
     }
 
-    // call after adjusting timeout
-    private void AdjustWindowPerAck() {
-        window_size = window_size * base_rtt / rt_avg + 3.0 / window_size;
-    }
-
     public double WindowSize() { return window_size; } 
-    public double Timeout() { return rt_avg + 4*rt_dev;}
+    public double Timeout() { return 1.2*rt_avg + 4*rt_dev;}
     public int BiggestAck() { return biggest_ack; }
     public bool ResetSeq() { return reset_seq; }
 
     public override string ToString() {
-        string tmpl = "<TCPReno window_size={0:0.00} timeout={1} ack={2}";
+        string tmpl = "<TCPFast window_size={0:0.00} timeout={1} ack={2}";
         tmpl += " dup_cnt={3} ";
         return string.Format(tmpl, window_size, Timeout(), biggest_ack, dup_cnt);
     }

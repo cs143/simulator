@@ -34,7 +34,7 @@ public class Router : Node
             //Console.WriteLine(packet);
             Node next = routing_table[Simulator.Nodes[packet.dest]];
             Link to_next = Simulator.LinksBySrcDest[Tuple.Create((Node)this, next)];
-            //Console.WriteLine(ip + ":sending " + to_next + packet);
+            ///Console.WriteLine(ip + ":sending " + to_next + packet);
             eqp.Add(eqp.current_time, to_next.EnqueuePacket(packet));
         };
     }
