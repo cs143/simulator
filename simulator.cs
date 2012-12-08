@@ -119,6 +119,15 @@ namespace simulator
                 Simulator.Links.Add(reverse_link.name, reverse_link);
                 Simulator.LinksBySrcDest.Add(new Tuple<Node, Node>(from_node, to_node), forward_link);
                 Simulator.LinksBySrcDest.Add(new Tuple<Node, Node>(to_node, from_node), reverse_link);
+
+                // events for dynamic cost calculation
+                /*double calc_at = -frequency/5;
+                while (calc_at <= duration) {
+                    eqp.Add(calc_at, forward_link.CalculateCost());
+                    eqp.Add(calc_at, reverse_link.CalculateCost());
+                    calc_at += frequency/5;
+                }
+                */
                 
                 Console.WriteLine(link_name);
             }
