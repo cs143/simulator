@@ -27,7 +27,7 @@ public class EventQueueProcessor
             if ((this.total_time ==0) || (next.Priority < this.total_time))
             {
                 current_time = next.Priority;
-                System.Console.WriteLine(next.Priority);
+                //System.Console.WriteLine(next.Priority);
 //System.Console.WriteLine("TIME:"+ current_time);
                 Event next_event = next.Data;
                 next_event();

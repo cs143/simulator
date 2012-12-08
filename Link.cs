@@ -7,27 +7,28 @@ public class Link {
     public readonly EventQueueProcessor eqp;
     public readonly Node dest;
     public readonly double rate;
-    //public double cost;
+    public double cost;
 
+    /*
     public double cost {
         get {
             return 1.0 / rate;
         }
     }
+    */
 
-    /*
-    private int prev_delivered_packets = 0;
+    private long prev_delivered_packets = 0;
     private double prev_calc_time = -10000;
 
     public Event CalculateCost () {
         return () => {
             cost = (lStatus.delivered_packets - prev_delivered_packets) / System.Math.Abs(eqp.current_time - prev_calc_time);
-            cost = System.Math.Min(cost,1);// + prop_delay;
+            cost = System.Math.Max(cost,1);// + prop_delay;
+            Console.WriteLine(this.name + ":" + cost);
             prev_calc_time = eqp.current_time;
             prev_delivered_packets = lStatus.delivered_packets;
         };
     }
-    */
 
     public readonly double prop_delay;
     public string name;
