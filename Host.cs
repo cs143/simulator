@@ -18,16 +18,13 @@ public class Host:DumbNode {
     private IP dest_ip;
     private int next_seq_num = 0;
     private int ack_num = 0;
-
-    // seconds. by setting it to such a high number, we assume that the first
-    // packet should never time out.
+    // in seconds. we assume that the first packet will never time out.
     private double timeout = 10000000;
+    // used in `CheckTimeout` we use this attr to 
+    // ignore the timers set before window size reset
+    private int window_resets = 0;
 
     private TCPStrategy tcp_strat;
-    // used in CheckTimeout. this attr is required because
-    // after the window size resets, we actually want to ignore
-    // the timeouts that were set in previous 
-    private int window_resets = 0;
     private bool is_busy = false;
 
     // PUBLIC METHODS
@@ -39,7 +36,6 @@ public class Host:DumbNode {
         this.hStat.flows = new FlowStatus[1];
         this.hStat.flows[0] = new FlowStatus();
     }
-    Random r = new Random();
 
     /* Main receive event */
     public override Event ReceivePacket(Packet packet) {
@@ -47,6 +43,7 @@ public class Host:DumbNode {
             if (packet.type == PacketType.ACK) {
                 ProcessACKPacket(packet);
             } else {
+                //Random r = new Random();
                 //if (r.Next(0, 20) != 0) {
                     ProcessDataPacket(packet);
                 //} else {
@@ -102,8 +99,7 @@ public class Host:DumbNode {
             seq_num=this.next_seq_num,
             timestamp = eqp.current_time
         };
-        // TODO re-implement
-        // Console.WriteLine(name+":"+eqp.current_time+": Sending " + packet);
+        //Console.WriteLine(name+":"+eqp.current_time+": Sending " + packet);
         double completion_time = eqp.current_time + packet.size / link.rate;
         eqp.Add(eqp.current_time, link.ReceivePacket(packet));
         is_busy = true;
@@ -134,6 +130,7 @@ public class Host:DumbNode {
     }
 
     private void ProcessDataPacket(Packet packet) {
+        //Console.WriteLine("GOT " + packet + expected_seq_num);
         if (packet.seq_num == expected_seq_num) {
             expected_seq_num++;
             // ack should be issued for every packet, but for now
@@ -144,29 +141,36 @@ public class Host:DumbNode {
                                     seq_num=expected_seq_num,
                                     timestamp=packet.timestamp};
             // Console.WriteLine(name+":"+eqp.current_time+": Sending " + ack_p);
+            // Console.WriteLine("SENDING " + ack_p);
             eqp.Add(eqp.current_time, link.ReceivePacket(ack_p));
         }
     }
 
     // PRIVATE METHODS THAT USE TCP STRATEGY
     private void ProcessACKPacket(Packet packet) {
-        this.tcp_strat.ProcessAck(packet, eqp.current_time);
-        UpdateTCPState();
-        eqp.Add(eqp.current_time, SendPacket());
+        //Console.WriteLine(eqp.current_time + ": Received ack" + packet);
+        if (packet.seq_num >= ack_num && packet.seq_num <= next_seq_num) {
+            this.tcp_strat.ProcessAck(packet, eqp.current_time);
+            UpdateTCPState();
+            eqp.Add(eqp.current_time, SendPacket());
+        }
+        else {
+            Console.WriteLine(eqp.current_time + ": Dropping ack" + packet);
+        }
     }
 
     private Event CheckTimeout(Packet packet, int resets) {
         return () => {
-            if (this.next_seq_num >= packet.seq_num &&
-                this.ack_num <= packet.seq_num &&
-                this.window_resets == resets)
-            { 
+            if (packet.seq_num >= ack_num &&
+                packet.seq_num < next_seq_num &&
+                window_resets == resets) {
                 // timed out
-                Console.WriteLine("TIMED OUT:" + packet);
+                Console.WriteLine(eqp.current_time + "TIMED OUT " + packet);
+                window_resets++;
                 this.tcp_strat.ProcessTimeout(packet, eqp.current_time);
                 UpdateTCPState();
+                eqp.Add(eqp.current_time, SendPacket());
             }
-            eqp.Add(eqp.current_time, SendPacket());
         };
     }
 
@@ -177,9 +181,16 @@ public class Host:DumbNode {
         this.ack_num = this.tcp_strat.BiggestAck();
         if (this.tcp_strat.ResetSeq()) {
             this.next_seq_num = this.ack_num;
-            this.window_resets++;
         }
         Console.WriteLine(eqp.current_time + "\t" + window_size + "\t" + this.tcp_strat);
+    }
+
+    private bool InsideWindow(Packet packet) {
+        if (packet.seq_num >= ack_num && packet.seq_num < next_seq_num) {
+            return true;
+        }
+        //Console.WriteLine("NOT INSIDE");
+        return false;
     }
 }
 

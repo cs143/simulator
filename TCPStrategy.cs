@@ -86,6 +86,7 @@ public class TCPReno : TCPStrategy {
         slow_start_thresh = System.Math.Max(2.0, window_size / 2.0);
         window_size = 1.0;
         reset_seq = true;
+        slow_start = true;
         System.Console.WriteLine("SS:" + this);
     }
 
@@ -103,7 +104,7 @@ public class TCPReno : TCPStrategy {
     }
 
     public double WindowSize() { return window_size; } 
-    public double Timeout() { return rt_avg + 4*rt_dev;}
+    public double Timeout() { return 2*rt_avg + 4*rt_dev;}
     public int BiggestAck() { return biggest_ack; }
     public bool ResetSeq() { return reset_seq; }
 
@@ -168,7 +169,7 @@ public class TCPFast : TCPStrategy {
     }
 
     public double WindowSize() { return window_size; } 
-    public double Timeout() { return rt_avg + 4*rt_dev;}
+    public double Timeout() { return 1.2*rt_avg + 4*rt_dev;}
     public int BiggestAck() { return biggest_ack; }
     public bool ResetSeq() { return reset_seq; }
 

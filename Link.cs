@@ -53,7 +53,7 @@ public class Link {
             else
             {
                 this.lStatus.dropped_packets++;
-                // Console.WriteLine("dropping " + packet);
+                Console.WriteLine("dropping " + packet);
             }
             Logger.LogLinkStatus(lStatus);
         };
