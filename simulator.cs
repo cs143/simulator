@@ -176,15 +176,6 @@ namespace simulator
             Console.ReadLine();
 
         }
-        private static Event StupidEvent(int x)
-        {
-            return () =>
-            {
-                //SimulatorLog.add("Hello, world!" + x);
-                System.Console.WriteLine("Hello, world!" + x);
-                eqp.Add(eqp.current_time + 1.0, StupidEvent(x + 1));
-            };
-        }
         
         /// <summary>
         /// Prints the specified message (for debugging purposes), with relevant information like the current time.
