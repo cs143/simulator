@@ -29,6 +29,8 @@ public class Router : Node
     /// </summary>
     public override Event ReceivePacket(Packet packet) {
         return () => {
+            if(routing_table == null)
+                throw new InvalidOperationException("Cannot route packets before routing table is calculated");
             Node next = routing_table[Simulator.Nodes[packet.dest]];
             Link to_next = Simulator.LinksBySrcDest[Tuple.Create((Node)this, next)];
             to_next.EnqueuePacket(packet);
@@ -40,8 +42,11 @@ public class Router : Node
     /// Calculates the shortest path to every other node in the network.
     /// The implementation uses Dijkstra's algorithm, for use in a link-state routing protocol.
     /// </summary>
+    /// <returns>
+    /// The tree, in the form of a dictionary (node => predecessor of node in shortest path to node), or (this => null).
+    /// </returns>
     private IDictionary<Node, Node> CalculateShortestPaths() {
-        var nodes = Simulator.Nodes.Values;	// TODO all nodes rather than hosts
+        var nodes = Simulator.Nodes.Values;
         /// Best known distance (sum of costs) from this to each node
         IDictionary<Node, double> dist = nodes.ToDictionary(node => node, _ => Double.PositiveInfinity);
         /// Predecessor of each node in shortest-paths tree
@@ -88,9 +93,21 @@ public class Router : Node
     /// </summary>
     private void RecalculateRoutingTable() {
         var shortest_paths_tree = CalculateShortestPaths();
-        routing_table = (IDictionary<Node, Node>)shortest_paths_tree.Values
-            .Where(n => n != this)
-            .Select(n => this.FirstHopOnShortestPath(n, shortest_paths_tree));
+        var other_nodes = Simulator.Nodes.Values
+            .Where(n => n != this);
+        routing_table = other_nodes.ToDictionary(n => n, n => FirstHopOnShortestPath(n, shortest_paths_tree));
+    }
+    /// <returns>
+    /// Event that tells this Router to recalculate its routing table.
+    /// This event should execute at least once prior to any packets being routed.
+    /// </returns>
+    public Event RecalculateRoutingTableEvent() {
+        return () => { this.RecalculateRoutingTable(); };
+    }
+    
+    public override string ToString()
+    {
+        return string.Format("<router ip={0}>", this.ip);
     }
 }
 
