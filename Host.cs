@@ -133,7 +133,7 @@ public class Host : Node
             // ack should be issued for every packet, but for now
             var ack_p = new Packet{payload_size=Packet.DEFAULT_ACK_SIZE,
                                     src=this.ip,
-                                    dest=link.dest.ip,
+                                    dest=packet.src,
                                     type=PacketType.ACK,
                                     seq_num=expected_seq_num,
                                     timestamp=packet.timestamp};

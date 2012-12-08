@@ -65,17 +65,17 @@ public class Link {
             if (!this.is_transmitting)
             {
                 TransmitPacket(packet);
-                // Console.WriteLine("transmitting " + packet);
+                //Console.WriteLine(name + ":transmitting " + packet);
             }
             else if (this.buffer.Count < this.buffer_size)
             {
                 this.buffer.Enqueue(packet);
-                //Console.WriteLine("queueing " + packet);
+                //Console.WriteLine(name + ":queueing " + packet);
             }
             else
             {
                 this.lStatus.dropped_packets++;
-                // Console.WriteLine("dropping " + packet);
+                //Console.WriteLine(name + ":dropping " + packet);
             }
             Logger.LogLinkStatus(lStatus);
         };
@@ -100,6 +100,7 @@ public class Link {
             if (this.buffer.Count > 0)
             {
                 Packet nextPkt = this.buffer.Dequeue();
+                //Console.WriteLine(name + ":transmitting " + nextPkt);
                 TransmitPacket(nextPkt);
             }
             this.lStatus.delivered_packets++;
