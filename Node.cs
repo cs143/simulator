@@ -26,6 +26,9 @@ public abstract class Node
         this.ip = ip;
     }
     
+    /// <summary>
+    /// Informs this Node about an outbound link.
+    /// </summary>
     public abstract void RegisterLink(Link link);
 }
 }

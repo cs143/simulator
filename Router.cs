@@ -9,6 +9,11 @@ using IP = System.String;
 namespace simulator
 {
 
+/// <summary>
+/// Represents a router that maintains a routing table,
+/// and forwards incoming packets to the next hop on the calculated shortest path to the destination
+/// specified by the packet.
+/// </summary>
 public class Router : Node
 {
     /// <summary>
@@ -27,6 +32,10 @@ public class Router : Node
     /// Event that router receives a packet.
     /// The router will immediately perform a routing-table lookup, and forward the packet along the appropriate link.
     /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// Throws an exception if the routing table has not been built yet.
+    /// You should execute the RecalculateRoutingTableEvent event first.
+    /// </exception>
     public override Event ReceivePacket(Packet packet) {
         return () => {
             if(routing_table == null)
