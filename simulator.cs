@@ -155,5 +155,15 @@ namespace simulator
                 eqp.Add(eqp.current_time + 1.0, StupidEvent(x + 1));
             };
         }
+        
+        /// <summary>
+        /// Prints the specified message (for debugging purposes), with relevant information like the current time.
+        /// </summary>
+        /// <param name='g'>Message to print</param>
+        public static void Message(string format, params Object[] args)
+        {
+            System.Console.Write("[t={0}] ", eqp.current_time);
+            System.Console.WriteLine(format, args);
+        }
     }
 }

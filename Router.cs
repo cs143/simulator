@@ -96,6 +96,7 @@ public class Router : Node
         var other_nodes = Simulator.Nodes.Values
             .Where(n => n != this);
         routing_table = other_nodes.ToDictionary(n => n, n => FirstHopOnShortestPath(n, shortest_paths_tree));
+        Simulator.Message("{0}'s new routing table: {1}", this.ip, routing_table.ToList().ToDelimitedString());
     }
     /// <returns>
     /// Event that tells this Router to recalculate its routing table.
