@@ -142,7 +142,15 @@ namespace SimGrapher
                                      wsize = item.Attribute("window_size")
                                  };
                 list[count].flow_rate_list = new PointPairList();
-                Int64 lastRecCount = 0;
+                var rec_item = from item in xmlDoc.Descendants("FlowReceive")
+                                 where item.Attribute("flow_name").Value == flow
+                                 orderby (double)item.Attribute("time")
+                                 select new
+                                 {
+                                     time = item.Attribute("time"),
+                                     rec_count = item.Descendants("received_packets").First()
+                                 };
+                /*Int64 lastRecCount = 0;
                 for (int j = 0; j < 100; j++)
                 {
 
@@ -167,12 +175,23 @@ namespace SimGrapher
                         lastRecCount = realRecCount;
                     }
                     list[count].flow_rate_list.Add((j + 1) * TimeInterval, flow_rate);
-                }
+                }*/
                 foreach (var pt in wSizeItems)
                 {
+                    
                     double x = (double)pt.time;
                     double y = (double)pt.wsize;
                     list[count].plist.Add(x, y);
+                }
+                double prev_time = 0.0;
+                double prev_count = 0.0;
+                foreach (var pt2 in rec_item)
+                {
+                    double x = (double)pt2.time;
+                    double y = ((double)pt2.rec_count - prev_count) / ((double)pt2.time - prev_time);
+                    list[count].flow_rate_list.Add(x, y);
+                    prev_time = x;
+                    prev_count = (double)pt2.rec_count;
                 }
                 count++;
             }

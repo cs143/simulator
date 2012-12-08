@@ -149,6 +149,28 @@ namespace simulator
             #endregion
             
             LogFilePath = xmlDoc.GetElementsByTagName("LogFilePath")[0].Attributes["path"].Value;
+            XmlNodeList TimeNodeList = xmlDoc.GetElementsByTagName("TotalTime");
+            if (TimeNodeList.Count > 0)
+            {
+                eqp.total_time = Convert.ToDouble(TimeNodeList[0].InnerText);
+            }
+            XmlNodeList SampleRateList = xmlDoc.GetElementsByTagName("SampleRate");
+            double sample_rate = 0;
+            if (SampleRateList.Count > 0)
+            {
+                sample_rate = Convert.ToDouble(SampleRateList[0].InnerText);
+            }
+            if ((sample_rate > 0) && (eqp.total_time > 0))
+            {
+                double time_interval = 1.0 / sample_rate;
+                double next_time = 0;
+                for (int j = 0; (j * time_interval) < Math.Ceiling(eqp.total_time); j++)
+                {
+                    next_time = next_time + time_interval;
+                    eqp.Add(next_time, Logger.LogEverything());
+                }
+            }
+            
             Console.WriteLine("Log File Path = " + LogFilePath);
             Logger.InitLogFile();
             Console.WriteLine("Press enter to continue => ");

@@ -22,4 +22,6 @@
   </Flows>
   <LogFilePath path="log.xml" />
   <Routing duration="30" frequency="5" />
+  <TotalTime>30</TotalTime>
+  <SampleRate>3</SampleRate>
 </Simulator>
