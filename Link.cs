@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 namespace simulator {
 
 public class Link {
@@ -69,7 +70,7 @@ public class Link {
                 TransmitPacket(packet);
                 //Simulator.Message(name + ":transmitting " + packet);
             }
-            else if (this.buffer.Count < this.buffer_size)
+            else if (this.buffer.Sum(pkt => pkt.size) < this.buffer_size)
             {
                 this.buffer.Enqueue(packet);
                 //Simulator.Message(name + ":queueing " + packet);
