@@ -30,22 +30,40 @@ namespace simulator
         public static Dictionary<Tuple<Node, Node>, Link> LinksBySrcDest;
         public static Dictionary<IP, Router> Routers;
         public static Dictionary<IP, Node> Nodes;
-        public static string LogFilePath = "";
-        static void Main()
+        public static string LogFilePath;
+        static int Main(string[] args)
         {
-            Init();
-            eqp.Execute();
-            Console.WriteLine("Press enter to continue => ");
-            Console.ReadLine();
-            Logger.CloseLogFile();
+            if(args.Length != 1) {
+                Console.WriteLine(Usage(process_name: System.AppDomain.CurrentDomain.FriendlyName));
+                return 1;
+            }
+            RunSimulation(configFileName: args[0]);
+            return 0;
         }
-        public static void Init()
+        public static string Usage(string process_name)
+        {
+            return string.Format("Usage: {0} {1}", process_name, "config_file.xml");
+        }
+        public static void RunSimulation(string configFileName)
+        {
+            Console.WriteLine("CS 143 Network Simulator");
+            Console.WriteLine("=========== Initializing ===========");
+            Init(configFileName);
+            Logger.InitLogFile();
+            Console.WriteLine("======== Running simulation ========");
+            eqp.Execute();
+            Console.WriteLine("=============== Done ===============");
+            Logger.CloseLogFile();
+            Console.WriteLine("Log written to \"{0}\"", LogFilePath);
+        }
+        /// <summary>
+        /// Reads the specified config file and instantiates the objects it defines.
+        /// </summary>
+        private static void Init(string configFileName)
         {
             XmlDocument xmlDoc = new XmlDocument();
-            Console.WriteLine("Enter the path to the configuration file (default = config.xml) =>");
-            string fileName = Console.ReadLine();
-            if (fileName == "" || fileName == null) fileName = "./config.xml";
-            xmlDoc.Load(fileName);
+            if (configFileName == "" || configFileName == null) configFileName = "./config.xml";
+            xmlDoc.Load(configFileName);
             #region Nodes
             #region Populate Hosts
             Simulator.Hosts = new Dictionary<string, Host>();
@@ -163,10 +181,6 @@ namespace simulator
             }
             
             Console.WriteLine("Log File Path = " + LogFilePath);
-            Logger.InitLogFile();
-            Console.WriteLine("Press enter to continue => ");
-            Console.ReadLine();
-
         }
         
         /// <summary>
