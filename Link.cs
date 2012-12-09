@@ -15,9 +15,6 @@ public class Link {
     public Event CalculateCost () {
         return () => {
             cost = buffer.Count * 8 * 1024 / rate + prop_delay;
-            //Console.WriteLine(this.name + ":" + cost);
-            prev_calc_time = eqp.current_time;
-            prev_delivered_packets = lStatus.delivered_packets;
         };
     }
 

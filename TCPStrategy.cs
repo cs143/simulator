@@ -24,26 +24,11 @@ public class TCPReno : TCPStrategy {
     private double slow_start_thresh = 100000000;
     private bool reset_seq = false;
 
-    /**
-    if pkt.ack_num > prev_acknowledged
-        set prev_ack = pkt.ack_num, DA = 0
-        if slow start
-            window_size++
-            if window_size > slow_start_thresh
-                go into CA mode
-        if CA
-            window_size += 1/window_size
-    if pkt.ack_num = prev_acknowledged
-        dupl_acks ++
-        if dupl_acks >= 3
-            halve window size
-            go into CA mode (meaning, on the next successful ack, window_size += 1/window_size)
-    if pkt.ack_num < prev_ack
-        we can ignore this, since eventually things will time out
-    */
-
-    public void UpdateWindowSize() { } // idempotent
-
+    // On every ack, update avg roundtrip time and its variance.
+    // If the sequence number of the packet is bigger than the previous,
+    // adjust the window size accordingly to the state it is in.
+    // Otherwise, bump up the duplicate count.
+    // Perform fast retransmit followed by congestion avoidance once you reach 3DA.
     public void ProcessAck(Packet pkt, Time current_time) {
         if (pkt.seq_num == 1) { // first packet
             AdjustTimeout(current_time - pkt.timestamp, true);
@@ -93,15 +78,14 @@ public class TCPReno : TCPStrategy {
     }
 
 
-    /**
-      set window_size to 1, and go into slow state
-    */
+    // On timeout, set window size to 1, and go into slow start
+    // When the window size is 1, don't reset slow start thresh. (to 2)
+    // It just means that the retransmitted packet (after 3DA) has been dropped.
     public void ProcessTimeout(Packet pkt, Time current_time) {
         if (window_size != 1.0) {
             slow_start_thresh = System.Math.Max(2.0, window_size / 2.0);
             window_size = 1.0;
         } else {
-            // go into slow start
             dup_cnt = 0;
         }
         reset_seq = true;
@@ -109,6 +93,7 @@ public class TCPReno : TCPStrategy {
         System.Console.WriteLine("SS:" + this);
     }
 
+    // Adjust avg and var roundtrip time after each packet
     private void AdjustTimeout(Time rt, bool reset) {
         // Textbook Page 92
         if (reset) {
@@ -126,6 +111,7 @@ public class TCPReno : TCPStrategy {
     public double Timeout() { return 2*rt_avg + 4*rt_dev;}
     public int BiggestAck() { return biggest_ack; }
     public bool ResetSeq() { return reset_seq; }
+    public void UpdateWindowSize() { }
 
     public override string ToString() {
         string tmpl = "<TCPReno window_size={0:0.00} timeout={1} ack={2}";
@@ -145,6 +131,8 @@ public class TCPFast : TCPStrategy {
     private bool reset_seq = false;
     private double base_rtt = 1000;
 
+    // On every ack, adjust the timeout
+    // On 3DA, reset `seq_num` of the host
     public void ProcessAck(Packet pkt, Time current_time) {
         if (pkt.seq_num == 1) { // first packet
             AdjustTimeout(current_time - pkt.timestamp, true);
@@ -164,15 +152,18 @@ public class TCPFast : TCPStrategy {
         }
     }
 
+    // On every timeout, reset `seq_num` of the host
     public void ProcessTimeout(Packet pkt, Time current_time) {
         reset_seq = true;
     }
 
+    // update the window size using Fast TCP algorithm
     // call this every 20 ms
     public void UpdateWindowSize() {
         window_size = window_size * base_rtt / rt_avg + 3.0;
     }
 
+    // Adjust avg and var roundtrip time after each packet
     private void AdjustTimeout(Time rt, bool reset) {
         // Textbook Page 92
         base_rtt = System.Math.Min(rt, base_rtt);
