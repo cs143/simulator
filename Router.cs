@@ -107,8 +107,10 @@ public class Router : Node
         /// </summary>
         public void Send(Packet pkt) {
             if(!already_seen.Contains(pkt)) {
+                Simulator.Message("Sending link-state packet {0} on links {1}", pkt, outgoing_links.ToDelimitedString());
                 foreach(Link l in outgoing_links)
                     eqp.Add(eqp.current_time, l.EnqueuePacket(pkt));
+                already_seen.Add(pkt);
             }
         }
     }
