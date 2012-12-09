@@ -50,13 +50,16 @@ public class Host : Node
     int randomized = 0;
     public override Event ReceivePacket(Packet packet) {
         return () => {
-            if (packet.type == PacketType.ACK) {
-                ProcessACKPacket(packet);
-            } else {
-                // FIXME ???
-                //} else {
+            switch(packet.type) {
+                case PacketType.ACK:
+                    ProcessACKPacket(packet);
+                break;
+                case PacketType.DATA:
                     ProcessDataPacket(packet);
-                //}
+                break;
+                default:
+                    // ignore routing packets
+                break;
             }
         };
     }
@@ -198,6 +201,15 @@ public class Host : Node
         //Simulator.Message(ip + ":" + eqp.current_time + "\t" + window_size + "\t" + this.tcp_strat);
     }
     #endregion
+    
+    public override Event RecalculateLinkState(int seq_num) {
+        return () => {
+            this.link.CalculateCost();
+            eqp.Add(eqp.current_time, this.link.EnqueuePacket(
+                Packet.CreateLinkStateAdvertisement(seq_num, src: this, link: this.link, current_time: eqp.current_time)
+            ));
+        };
+    }
 }
 
 }

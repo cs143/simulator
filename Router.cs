@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using MoreLinq;
+using System.Diagnostics;
 
 using IP = System.String;
 
@@ -24,8 +25,9 @@ public class Router : Node
     public Router(EventQueueProcessor eqp, IP ip) : base(eqp, ip) {
     }
     
+    private readonly ISet<Link> outgoing_links = new HashSet<Link>();
     public override void RegisterLink(Link link) {
-        // Nothing to do, since we look up links from the global Simulator.LinksBySrcDest when needed.
+        outgoing_links.Add(link);
     }
     
     /// <summary>
@@ -38,14 +40,109 @@ public class Router : Node
     /// </exception>
     public override Event ReceivePacket(Packet packet) {
         return () => {
-            if(routing_table == null)
-                throw new InvalidOperationException("Cannot route packets before routing table is calculated");
-            //Simulator.Message(packet);
-            Node next = routing_table[Simulator.Nodes[packet.dest]];
-            Link to_next = Simulator.LinksBySrcDest[Tuple.Create((Node)this, next)];
-            ///Simulator.Message(ip + ":sending " + to_next + packet);
-            eqp.Add(eqp.current_time, to_next.EnqueuePacket(packet));
+            if(packet.type == PacketType.LINK_STATE_ADVERTISEMENT)
+                this.ProcessLinkStateAdvertisement(packet);
+            else
+                this.ForwardOrdinaryPacket(packet);
         };
+    }
+    
+    #region Link-state sharing
+    /// <summary>
+    /// How many routing recalculations have been performed.
+    /// </summary>
+    private int routing_seq_num;
+    /// <summary>
+    /// Link costs for routing_seq_num that this Router currently knows
+    /// </summary>
+    private IDictionary<Link, double> known_link_costs;
+    
+    /// <summary>
+    /// Recalculates the state of all links originating at this node,
+    /// and shares the information with all neighbors.
+    /// </summary>
+    /// <param name='seq_num'>
+    /// New routing sequence number.
+    /// </param>
+    public override Event RecalculateLinkState(int seq_num) {
+        return () => {
+            Debug.Assert(this.routing_seq_num < seq_num, "Routing sequence numbers must be monotonic.");
+            this.routing_seq_num = seq_num;
+            this.known_link_costs = new Dictionary<Link, double>(); // Discard old cost info (for previous routing sequence number)
+            this.link_state_sender = new LinkStatePacketSender(eqp, outgoing_links);
+            
+            // Recalculate costs for our own links, and record in our table
+            foreach(Link l in outgoing_links)
+                known_link_costs[l] = l.CalculateCost();
+            
+            // Packets containing the new info about link costs
+            var link_state_packets = outgoing_links
+                .Select(l => Packet.CreateLinkStateAdvertisement(seq_num, src: this, link: l, current_time: eqp.current_time));
+            // Send all the packets on all outgoing links
+            link_state_packets.ForEach(pkt => link_state_sender.Send(pkt));
+            
+            this.RecalculateRoutingTableIfEnoughInfo();
+        };
+    }
+    
+    private LinkStatePacketSender link_state_sender;
+    private class LinkStatePacketSender {
+        private readonly ISet<Link> outgoing_links;
+        private readonly EventQueueProcessor eqp;
+        public LinkStatePacketSender(EventQueueProcessor eqp, ISet<Link> outgoing_links) {
+            this.eqp = eqp;
+            this.outgoing_links = outgoing_links;
+        }
+        private readonly ISet<Packet> already_seen = new HashSet<Packet>();
+        /// <summary>
+        /// Sends a new packet on all outgoing links.
+        /// If during this round, an identical packet has already been sent, does nothing.
+        /// This avoids sending infinite loops of link-state packets.
+        /// </summary>
+        public void Send(Packet pkt) {
+            if(!already_seen.Contains(pkt)) {
+                foreach(Link l in outgoing_links)
+                    eqp.Add(eqp.current_time, l.EnqueuePacket(pkt));
+            }
+        }
+    }
+    
+    
+    /// <summary>Recalculates the routing table if we know the latest link costs for all links. Otherwise does nothing.<c/summary>
+    private void RecalculateRoutingTableIfEnoughInfo() {
+        if(new HashSet<Link>(known_link_costs.Keys).IsSupersetOf(Simulator.Links.Values))
+            RecalculateRoutingTable();
+    }
+    
+    /// <summary>
+    /// Processes a received link-state advertisement by adding it to the table of known link costs.
+    /// If the received packet gives us enough information, this triggers recalculation of the routing table.
+    /// The advertisement will be forwarded on all outgoing links (if not already done).
+    /// </summary>
+    private void ProcessLinkStateAdvertisement(Packet pkt) {
+        Debug.Assert(pkt.seq_num <= this.routing_seq_num);
+        if(pkt.seq_num == this.routing_seq_num) { // packet describes current round
+            Link described_link = Simulator.LinksBySrcDest[Tuple.Create(Simulator.Nodes[pkt.src], Simulator.Nodes[pkt.link_dest])];
+            known_link_costs.Add(described_link, pkt.link_cost);
+            RecalculateRoutingTableIfEnoughInfo();
+        } else {
+            Simulator.Message("Warning: received a link-state advertisement from a previous round {0} (current routing seq num = {1})",
+                pkt.seq_num, this.routing_seq_num);
+        }
+    }
+    #endregion
+    
+    /// <summary>
+    /// Immediately performs a routing-table lookup and forwards an ordinary packet on the appropriate link.
+    /// </summary>
+    private void ForwardOrdinaryPacket(Packet packet) {
+        if(routing_table == null)
+            throw new InvalidOperationException("Cannot route packets before routing table is calculated");
+        //Simulator.Message(packet);
+        Node next = routing_table[Simulator.Nodes[packet.dest]];
+        Link to_next = Simulator.LinksBySrcDest[Tuple.Create((Node)this, next)];
+        ///Simulator.Message(ip + ":sending " + to_next + packet);
+        eqp.Add(eqp.current_time, to_next.EnqueuePacket(packet));
     }
     
     
@@ -100,7 +197,7 @@ public class Router : Node
     }
     
     /// <summary>
-    /// Recalculates the routing table.
+    /// Recalculates the routing table. This should execute at least once prior to any packets being routed.
     /// </summary>
     private void RecalculateRoutingTable() {
         var shortest_paths_tree = CalculateShortestPaths();
@@ -111,13 +208,6 @@ public class Router : Node
             this.ip,
             routing_table.Select(kv => string.Format("→{0}:{1}", kv.Key.ip, kv.Value.ip)).ToDelimitedString(", ")
         );
-    }
-    /// <returns>
-    /// Event that tells this Router to recalculate its routing table.
-    /// This event should execute at least once prior to any packets being routed.
-    /// </returns>
-    public Event RecalculateRoutingTableEvent() {
-        return () => { this.RecalculateRoutingTable(); };
     }
     
     public override string ToString()

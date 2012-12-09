@@ -20,15 +20,21 @@ public class Link {
 
     private long prev_delivered_packets = 0;
     private double prev_calc_time = -10000;
-
-    public Event CalculateCost () {
-        return () => {
-            cost = (lStatus.delivered_packets - prev_delivered_packets) / System.Math.Abs(eqp.current_time - prev_calc_time);
-            cost = System.Math.Max(cost,1);// + prop_delay;
-            Simulator.Message(this.name + "'s new cost = " + cost);
-            prev_calc_time = eqp.current_time;
-            prev_delivered_packets = lStatus.delivered_packets;
-        };
+    
+    /// <summary>
+    /// Recalculates this link's cost dynamically, considering load information over the preceding time period.
+    /// </summary>
+    /// <returns>
+    /// The calculated cost.
+    /// </returns>
+    public double CalculateCost() {
+        cost = (lStatus.delivered_packets - prev_delivered_packets) / System.Math.Abs(eqp.current_time - prev_calc_time);
+        cost = System.Math.Max(cost,1);// + prop_delay;
+        Simulator.Message(this.name + "'s new cost = " + cost);
+        prev_calc_time = eqp.current_time;
+        prev_delivered_packets = lStatus.delivered_packets;
+        
+        return cost;
     }
 
     public readonly double prop_delay;
