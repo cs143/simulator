@@ -28,6 +28,10 @@ namespace simulator
             Console.ReadLine();
             Logger.CloseLogFile();
         }
+        /// <summary>
+        /// Loads the xml configuration file and builds the network graph.  
+        /// Also set simple config parameters.
+        /// </summary>
         public static void Init()
         {
             XmlDocument xmlDoc = new XmlDocument();

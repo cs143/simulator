@@ -2,7 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 namespace simulator {
-
+/// <summary>
+/// Represents a physical link between two nodes, as well as the send buffer for that link.  
+/// Handles buffering, packet dropping and link cost calculation.
+/// </summary>
 public class Link {
     public readonly EventQueueProcessor eqp;
     public readonly Node dest;
@@ -11,7 +14,10 @@ public class Link {
 
     private long prev_delivered_packets = 0;
     private double prev_calc_time = -10000;
-
+    /// <summary>
+    /// Event that tells link to recalculate its cost
+    /// </summary>
+    /// <returns></returns>
     public Event CalculateCost () {
         return () => {
             cost = buffer.Count * 8 * 1024 / rate + prop_delay;
