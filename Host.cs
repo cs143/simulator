@@ -27,6 +27,7 @@ public class Host : Node
     private int ack_num = 0;
     // in seconds. we assume that the first packet will never time out.
     private double timeout = 10000000;
+    private double packet_delay = 0;
     // used in `CheckTimeout` we use this attr to 
     // ignore the timers set before window size reset
     private int window_resets = 0;
@@ -151,8 +152,18 @@ public class Host : Node
                                 timestamp=packet.timestamp};
         // Console.WriteLine(name+":"+eqp.current_time+": Sending " + ack_p);
         // Console.WriteLine("SENDING " + ack_p);
+        UpdatePacketDelay(eqp.current_time - packet.timestamp);
         eqp.Add(eqp.current_time, link.EnqueuePacket(ack_p));
         this.flow_rec_stat.received_packets++;
+    }
+
+    private double update_rate = 0.5;
+    private void UpdatePacketDelay(double delay) {
+        if (packet_delay == 0) {
+            packet_delay = 0;
+        }
+        packet_delay = (1-update_rate)*packet_delay + update_rate*delay;
+        this.flow_rec_stat.packet_delay = packet_delay;
     }
     #endregion
 

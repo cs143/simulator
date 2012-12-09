@@ -153,6 +153,8 @@ namespace simulator
         }
         [XmlElement]
         public Int64 received_packets;
+        [XmlAttribute]
+        public double packet_delay;
     }
 
     public struct HostStatus
