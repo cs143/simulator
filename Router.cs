@@ -123,6 +123,7 @@ public class Router : Node
         Debug.Assert(pkt.seq_num <= this.routing_seq_num);
         if(pkt.seq_num == this.routing_seq_num) { // packet describes current round
             Link described_link = Simulator.LinksBySrcDest[Tuple.Create(Simulator.Nodes[pkt.src], Simulator.Nodes[pkt.link_dest])];
+            Debug.Assert(described_link.cost == pkt.link_cost, "Sanity check failed: received link-state packet claiming incorrect link cost");
             known_link_costs.Add(described_link, pkt.link_cost);
             RecalculateRoutingTableIfEnoughInfo();
         } else {
@@ -174,7 +175,8 @@ public class Router : Node
                 .Where(v => Simulator.LinksBySrcDest.ContainsKey(Tuple.Create(u, v))))
             {
                 Link uv = Simulator.LinksBySrcDest[Tuple.Create(u, v)];
-                double new_dist = dist[u] + uv.cost;
+                // Look up link cost from our own local table, instead of statically
+                double new_dist = dist[u] + this.known_link_costs[uv];
                 if(new_dist < dist[v]) {
                     dist[v] = new_dist;
                     previous[v] = u;
