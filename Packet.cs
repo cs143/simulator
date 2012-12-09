@@ -47,7 +47,10 @@ public struct Packet {
     public static readonly int HEADER_SIZE = 0;
     public static readonly int DEFAULT_PAYLOAD_SIZE = 8*1024;
     public static readonly int DEFAULT_ACK_SIZE = 8*64;
-    public static readonly int LINK_STATE_ADVERTISEMENT_SIZE = 8*64;
+    public static readonly int LINK_STATE_ADVERTISEMENT_SIZE = 0 /*make sure routing packets can always fit in buffer => never get dropped*/;
+    /// <value>
+    /// Total size of packet, including headers and payload
+    /// </value>
     public int size {
         get {
             return payload_size + Packet.HEADER_SIZE;
