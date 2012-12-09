@@ -6,6 +6,7 @@ namespace simulator {
 
 public class Link {
     public readonly EventQueueProcessor eqp;
+    public readonly Node src;
     public readonly Node dest;
     public readonly double rate;
     public double cost;
@@ -44,8 +45,9 @@ public class Link {
     private bool is_transmitting;
     public LinkStatus lStatus;
     public Queue<Packet> buffer;
-    public Link(EventQueueProcessor eqp, string name, Node dest, double rate, double prop_delay, Int64 buffer_size) {
+    public Link(EventQueueProcessor eqp, string name, Node src, Node dest, double rate, double prop_delay, Int64 buffer_size) {
         this.eqp = eqp;
+        this.src = src;
         this.dest = dest;
         this.rate = rate;
         this.name = name;
@@ -117,7 +119,7 @@ public class Link {
         };
     }
     public override string ToString() {
-        return string.Format("<Link name={3} dest={0} rate={1} prop_delay={2}>", dest, rate, prop_delay, name);
+        return string.Format("<Link name={3} ({4}→{0}) rate={1} prop_delay={2}>", dest, rate, prop_delay, name, src);
     }
 
 }

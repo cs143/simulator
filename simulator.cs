@@ -116,12 +116,12 @@ namespace simulator
                 string node_from_name = link_node.Attributes["from"].Value;
                 Node to_node = Simulator.Nodes[node_to_name];
                 Node from_node = Simulator.Nodes[node_from_name];
-                Link forward_link = new Link(eqp, link_name, to_node,
+                Link forward_link = new Link(eqp, link_name, from_node, to_node,
                     Convert.ToDouble(link_node.Attributes["rate"].Value),
                     Convert.ToDouble(link_node.Attributes["prop_delay"].Value),
                     Convert.ToInt64(link_node.Attributes["buffer_size"].Value));
                 from_node.RegisterLink(forward_link);
-                Link reverse_link = new Link(eqp, link_name + "_Reverse", from_node,
+                Link reverse_link = new Link(eqp, link_name + "_Reverse", to_node, from_node,
                     Convert.ToDouble(link_node.Attributes["rate"].Value),
                     Convert.ToDouble(link_node.Attributes["prop_delay"].Value),
                     Convert.ToInt64(link_node.Attributes["buffer_size"].Value));
