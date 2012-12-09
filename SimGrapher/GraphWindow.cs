@@ -17,6 +17,7 @@ namespace SimGrapher
         public string name;
         public PointPairList plist;
         public PointPairList flow_rate_list;
+        public PointPairList send_rate_list;
     }
     public struct Link
     {
@@ -41,31 +42,13 @@ namespace SimGrapher
             Flow[] wSizeList = GetFlowStatusList(xmlDoc);
             CreateWindowSizeChart(zedGraphControl1,wSizeList);
             CreateFlowRateChart(zedGraphControl5, wSizeList);
+            CreateSendRateChart(zedGraphControl6, wSizeList);
             Link[] linkStatList = GetLinkStatusList(xmlDoc);
             CreateDroppedPacketChart(zedGraphControl2, linkStatList);
             CreateBufferSizeChart(zedGraphControl3, linkStatList);
             CreateLinkRateChart(zedGraphControl4, linkStatList);
         }
-        public PointPairList GetBufferSizeList(XDocument xmlDoc, string name)
-        {
-            PointPairList plist = new PointPairList();
-            var buff_size_items = from item in xmlDoc.Descendants("LinkStatus")
-                             where item.Attribute("link_name").Value == name
-                             orderby (double)item.Attribute("time")
-                             select new
-                             {
-                                 time = item.Attribute("time"),
-                                 buff_size = Convert.ToDouble(item.Descendants("buffer_occupancy").First().Value)
-                             };
-            foreach (var pt in buff_size_items)
-            {
-                double x = (double)pt.time;
-                double y = (double)pt.buff_size;
-                plist.Add(x, y);
-            }
-            return plist;
-        }
-        public Link[] GetLinkStatusList(XDocument xmlDoc)
+       public Link[] GetLinkStatusList(XDocument xmlDoc)
         {
             int actcnt=0;
             var linkList = (from item in xmlDoc.Descendants("LinkStatus")
@@ -86,12 +69,13 @@ namespace SimGrapher
                 if (link.IndexOf("Reverse")>0) continue;
                 list[count] = new Link();
                 list[count].name = link;
-                list[count].buffer_size_list = GetBufferSizeList(xmlDoc, link);
+                list[count].buffer_size_list = new PointPairList();//GetBufferSizeList(xmlDoc, link);
                 list[count].droppedPacketList = new PointPairList();
                 list[count].link_rate_list = new PointPairList();
-                Int64 lastDpCount = 0;
-                Int64 lastDelCount = 0;
-                for (int j = 0; j < 100; j++)
+                double lastDpCount = 0.0;
+                double lastDelCount = 0.0;
+#region oldcode
+                /*for (int j = 0; j < 100; j++)
                 {
 
                     double dropped_packet_rate = 0;
@@ -119,9 +103,36 @@ namespace SimGrapher
                         link_rate = (realDelCount - lastDelCount)  / (TimeInterval*125);
                         lastDelCount = realDelCount;
                     }
-                    list[count].droppedPacketList.Add((j + 1) * TimeInterval, dropped_packet_rate);
-                    list[count].link_rate_list.Add((j + 1) * TimeInterval, link_rate);
+                   
+                }*/
+#endregion
+                var lstat_item = from item in xmlDoc.Descendants("LinkStatus")
+                               where item.Attribute("link_name").Value == link
+                               orderby (double)item.Attribute("time")
+                               select new
+                               {
+                                   time = item.Attribute("time"),
+                                   dp_count = item.Descendants("dropped_packets").First(),
+                                   lr_count = item.Descendants("delivered_packets").First(),
+                                   buff_size = Convert.ToDouble(item.Descendants("buffer_occupancy").First().Value)
+                               };
+                double prev_time = 0.0;
+                foreach (var next_stat in lstat_item)
+                {
+                    double x = (double) next_stat.time;
+                    double dropped_packet_rate = ((double)next_stat.dp_count - lastDpCount)/((double)next_stat.time - prev_time);
+                    double link_rate = ((double)next_stat.lr_count - lastDelCount)/(125*((double)next_stat.time - prev_time));
+                    list[count].buffer_size_list.Add(x,(double)next_stat.buff_size);
+                    list[count].droppedPacketList.Add(x, dropped_packet_rate);
+                    list[count].link_rate_list.Add(x, link_rate);
+                    lastDpCount = (double)next_stat.dp_count;
+                    lastDelCount = (double)next_stat.lr_count;
+                    prev_time = (double)next_stat.time;
                 }
+                int newCount = dataGridLinks.Rows.Add();
+                dataGridLinks.Rows[newCount].Cells[0].Value = link;
+                double avgLoss = lastDpCount / prev_time;
+                dataGridLinks.Rows[newCount].Cells["AvgLoss"].Value = avgLoss;
                 count++;
             }
             return list;
@@ -141,13 +152,15 @@ namespace SimGrapher
                 list[count] = new Flow();
                 list[count].name = flow;
                 list[count].plist = new PointPairList();
+                list[count].send_rate_list = new PointPairList();
                 var wSizeItems = from item in xmlDoc.Descendants("FlowStatus")
                                  where item.Attribute("flow_name").Value == flow
                                  orderby (double)item.Attribute("time")
                                  select new
                                  {
                                      time = item.Attribute("time"),
-                                     wsize = item.Attribute("window_size")
+                                     wsize = item.Attribute("window_size"),
+                                     sent_packets = item.Attribute("packets_sent")
                                  };
                 list[count].flow_rate_list = new PointPairList();
                 var rec_item = from item in xmlDoc.Descendants("FlowReceive")
@@ -158,6 +171,8 @@ namespace SimGrapher
                                      time = item.Attribute("time"),
                                      rec_count = item.Descendants("received_packets").First()
                                  };
+
+                #region obsolete
                 /*Int64 lastRecCount = 0;
                 for (int j = 0; j < 100; j++)
                 {
@@ -184,15 +199,22 @@ namespace SimGrapher
                     }
                     list[count].flow_rate_list.Add((j + 1) * TimeInterval, flow_rate);
                 }*/
+                #endregion
+                double prev_time = 0.0;
+                double prev_count = 0.0;
                 foreach (var pt in wSizeItems)
                 {
                     
                     double x = (double)pt.time;
                     double y = (double)pt.wsize;
                     list[count].plist.Add(x, y);
+                    double send_rate = ((double)pt.sent_packets - prev_count) / (125*((double)pt.time - prev_time));
+                    list[count].send_rate_list.Add(x, send_rate);
+                    prev_time = x;
+                    prev_count = (double)pt.sent_packets;
                 }
-                double prev_time = 0.0;
-                double prev_count = 0.0;
+                prev_time = 0.0;
+                prev_count = 0.0;
                 foreach (var pt2 in rec_item)
                 {
                     double x = (double)pt2.time;
@@ -201,6 +223,8 @@ namespace SimGrapher
                     prev_time = x;
                     prev_count = (double)pt2.rec_count;
                 }
+                int newRowCount = dataGridFlows.Rows.Add();
+                dataGridFlows.Rows[newRowCount].Cells[0].Value = flow;
                 count++;
             }
             return list;
@@ -271,7 +295,7 @@ namespace SimGrapher
             // Set the titles and axis labels
             myPane.Title.Text = "";
             myPane.XAxis.Title.Text = "Time, s";
-            myPane.YAxis.Title.Text = "Flow rate (Mbps)";
+            myPane.YAxis.Title.Text = "Receive rate (Mbps)";
 
             /*myPane.Legend.Position = LegendPos.Float;
             myPane.Legend.Location = new Location(0.95, 0.15, CoordType.PaneFraction,
@@ -314,6 +338,42 @@ namespace SimGrapher
                 myPane.GraphObjList.Add(text);
             }*/
             #endregion
+
+            // Leave some extra space on top for the labels to fit within the chart rect
+            myPane.YAxis.Scale.MaxGrace = 0.2;
+
+            // Calculate the Axis Scale Ranges
+            zgc.AxisChange();
+        }
+        public void CreateSendRateChart(ZedGraphControl zgc, Flow[] list)
+        {
+            GraphPane myPane = zgc.GraphPane;
+            System.Drawing.Color[] GraphColors = { Color.Red, Color.Blue, Color.Green, Color.Orange, Color.Purple, Color.Brown };
+            // Set the titles and axis labels
+            myPane.Title.Text = "";
+            myPane.XAxis.Title.Text = "Time, s";
+            myPane.YAxis.Title.Text = "Send rate (Mbps)";
+
+            /*myPane.Legend.Position = LegendPos.Float;
+            myPane.Legend.Location = new Location(0.95, 0.15, CoordType.PaneFraction,
+                                 AlignH.Right, AlignV.Top);
+            myPane.Legend.FontSpec.Size = 10;*/
+            myPane.Legend.Position = LegendPos.InsideTopLeft;
+            // Add a curve
+            for (int k = 0; k < list.Length; k++)
+            {
+                LineItem curve = myPane.AddCurve(list[k].name, list[k].send_rate_list, GraphColors[k % 6], SymbolType.None);
+                curve.Line.Width = 2.0F;
+                curve.Line.IsAntiAlias = true;
+                curve.Symbol.Fill = new Fill(Color.White);
+                curve.Symbol.Size = 7;
+            }
+            // Fill the axis background with a gradient
+            //myPane.Chart.Fill = new Fill(Color.White, Color.FromArgb(255, Color.ForestGreen), 45.0F);
+
+            // Offset Y space between point and label
+            // NOTE:  This offset is in Y scale units, so it depends on your actual data
+            //const double offset = 1.0;
 
             // Leave some extra space on top for the labels to fit within the chart rect
             myPane.YAxis.Scale.MaxGrace = 0.2;

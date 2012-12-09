@@ -43,6 +43,7 @@ public class Host : Node
         this.hStat.flows = new FlowStatus[1];
         this.hStat.flows[0] = new FlowStatus();
         this.hStat.flows[0].flow_name = "";
+        this.hStat.flows[0].packets_sent = 0;
         this.flow_rec_stat.flow_name = "";
     }
 
@@ -119,6 +120,7 @@ public class Host : Node
         eqp.Add(completion_time + this.timeout, CheckTimeout(packet, window_resets));
         hStat.flows[0].time = eqp.current_time;
         hStat.flows[0].window_size = window_size;
+        hStat.flows[0].packets_sent++;
         //Logger.LogHostStatus(hStat);
     }
 

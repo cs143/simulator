@@ -129,6 +129,8 @@ namespace simulator
         [XmlAttribute]
         public double window_size;//0 if flow has not started
         [XmlAttribute]
+        public double packets_sent;
+        [XmlAttribute]
         public double time
         {
             get
