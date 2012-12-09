@@ -208,6 +208,7 @@ public class Host : Node
             eqp.Add(eqp.current_time, this.link.EnqueuePacket(
                 Packet.CreateLinkStateAdvertisement(seq_num, src: this, link: this.link, current_time: eqp.current_time)
             ));
+            Simulator.Message("Host {0} sent link-state packet to {2} on link {1}", this.ip, this.link.name, this.link.dest.ip);
         };
     }
 }

@@ -56,6 +56,11 @@ public class Router : Node
     /// Link costs for routing_seq_num that this Router currently knows
     /// </summary>
     private IDictionary<Link, double> known_link_costs;
+    /// <summary>
+    /// True iff the routing table has been updated to use this round's link costs. False iff it needs to be updated.
+    /// This avoids recalculating the routing table each time a redundant link-state packet is received.
+    /// </summary>
+    private bool routing_table_up_to_date;
     
     /// <summary>
     /// Recalculates the state of all links originating at this node,
@@ -69,6 +74,7 @@ public class Router : Node
             Debug.Assert(this.routing_seq_num < seq_num, "Routing sequence numbers must be monotonic.");
             this.routing_seq_num = seq_num;
             this.known_link_costs = new Dictionary<Link, double>(); // Discard old cost info (for previous routing sequence number)
+            this.routing_table_up_to_date = false;
             this.link_state_sender = new LinkStatePacketSender(eqp, outgoing_links);
             
             // Recalculate costs for our own links, and record in our table
@@ -108,12 +114,14 @@ public class Router : Node
     }
     
     
-    /// <summary>Recalculates the routing table if we know the latest link costs for all links. Otherwise does nothing.<c/summary>
+    /// <summary>Recalculates the routing table if we know the latest link costs for all links, and it's not already been updated on this round. Otherwise does nothing.<c/summary>
     private void RecalculateRoutingTableIfEnoughInfo() {
-        Simulator.Message("{0}: known link costs: {1}", this.ip, known_link_costs.ToDelimitedString());
-        Simulator.Message("{0}: not known: {1}", this.ip, Simulator.Links.Values.Except(known_link_costs.Keys).ToDelimitedString());
-        if(new HashSet<Link>(known_link_costs.Keys).IsSupersetOf(Simulator.Links.Values))
-            RecalculateRoutingTable();
+        if(!routing_table_up_to_date) {
+            Simulator.Message("{0}: known link costs: {1}", this.ip, known_link_costs.ToDelimitedString());
+            Simulator.Message("{0}: not known: {1}", this.ip, Simulator.Links.Values.Except(known_link_costs.Keys).ToDelimitedString());
+            if(new HashSet<Link>(known_link_costs.Keys).IsSupersetOf(Simulator.Links.Values))
+                RecalculateRoutingTable();
+        }
     }
     
     /// <summary>
@@ -122,12 +130,18 @@ public class Router : Node
     /// The advertisement will be forwarded on all outgoing links (if not already done).
     /// </summary>
     private void ProcessLinkStateAdvertisement(Packet pkt) {
+        Simulator.Message("Router {0} received link-state packet for link {1}", this.ip, pkt);
         Debug.Assert(pkt.seq_num <= this.routing_seq_num);
         if(pkt.seq_num == this.routing_seq_num) { // packet describes current round
             Link described_link = Simulator.LinksBySrcDest[Tuple.Create(Simulator.Nodes[pkt.src], Simulator.Nodes[pkt.link_dest])];
             Debug.Assert(described_link.cost == pkt.link_cost, "Sanity check failed: received link-state packet claiming incorrect link cost");
-            known_link_costs.Add(described_link, pkt.link_cost);
+            if(known_link_costs.ContainsKey(described_link)) {
+                Debug.Assert(known_link_costs[described_link] == pkt.link_cost);
+            } else {
+                known_link_costs.Add(described_link, pkt.link_cost);
+            }
             RecalculateRoutingTableIfEnoughInfo();
+            link_state_sender.Send(pkt);
         } else {
             Simulator.Message("Warning: received a link-state advertisement from a previous round {0} (current routing seq num = {1})",
                 pkt.seq_num, this.routing_seq_num);
@@ -208,6 +222,7 @@ public class Router : Node
         var other_nodes = Simulator.Nodes.Values
             .Where(n => n != this);
         routing_table = other_nodes.ToDictionary(n => n, n => FirstHopOnShortestPath(n, shortest_paths_tree));
+        this.routing_table_up_to_date = true;
         Simulator.Message("{0}'s new routing table: {1}",
             this.ip,
             routing_table.Select(kv => string.Format("→{0}:{1}", kv.Key.ip, kv.Value.ip)).ToDelimitedString(", ")
