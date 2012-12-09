@@ -117,7 +117,7 @@ public class Link {
         };
     }
     public override string ToString() {
-        return string.Format("<Link dest={0} rate={1} prop_delay={2}>", dest, rate, prop_delay);
+        return string.Format("<Link name={3} dest={0} rate={1} prop_delay={2}>", dest, rate, prop_delay, name);
     }
 
 }

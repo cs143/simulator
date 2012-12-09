@@ -110,6 +110,8 @@ public class Router : Node
     
     /// <summary>Recalculates the routing table if we know the latest link costs for all links. Otherwise does nothing.<c/summary>
     private void RecalculateRoutingTableIfEnoughInfo() {
+        Simulator.Message("{0}: known link costs: {1}", this.ip, known_link_costs.ToDelimitedString());
+        Simulator.Message("{0}: not known: {1}", this.ip, Simulator.Links.Values.Except(known_link_costs.Keys).ToDelimitedString());
         if(new HashSet<Link>(known_link_costs.Keys).IsSupersetOf(Simulator.Links.Values))
             RecalculateRoutingTable();
     }
@@ -138,7 +140,7 @@ public class Router : Node
     /// </summary>
     private void ForwardOrdinaryPacket(Packet packet) {
         if(routing_table == null)
-            throw new InvalidOperationException("Cannot route packets before routing table is calculated");
+            throw new InvalidOperationException("Cannot route packet before routing table is calculated: " + packet);
         //Simulator.Message(packet);
         Node next = routing_table[Simulator.Nodes[packet.dest]];
         Link to_next = Simulator.LinksBySrcDest[Tuple.Create((Node)this, next)];

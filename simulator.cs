@@ -87,22 +87,23 @@ namespace simulator
                 Console.WriteLine("Initializing router {0}", router_name);
                 simulator.Router r = new simulator.Router(eqp, router_name);
                 Simulator.Routers.Add(router_name, r);
-                // Calculate routing tables at least once before flows start; align to 0
-                double build_at = -frequency;
-                while (build_at <= duration) {
-                    eqp.Add(build_at, r.RecalculateRoutingTableEvent());
-                    build_at += frequency;
-                }
             }
             #endregion
             // TODO Is there a more elegant way to do this?
             Nodes = Hosts.Select(e => new KeyValuePair<IP, Node>(e.Key, e.Value))
                 .Concat(Routers.Select(e => new KeyValuePair<IP, Node>(e.Key, e.Value)))
                 .ToDictionary(pair => pair.Key, pair => pair.Value);
-                // ((IDictionary<IP, Node>)Hosts).Concat<Node>(Routers); // union
             
-            //.SelectMany(dict => dict)
-              //  .ToDictionary(pair => pair.Key, pair => pair.Value);
+            { // Calculate routing tables at least once before flows start; align to 0
+                double build_at = -frequency;
+                int seq_num = 0;
+                while (build_at <= duration) {
+                    foreach(Node node in Nodes.Values)
+                        eqp.Add(build_at, node.RecalculateLinkState(seq_num));
+                    build_at += frequency;
+                    seq_num++;
+                }
+            }
             #endregion
             #region Populate Links
             Simulator.Links = new Dictionary<string, Link>();
@@ -130,14 +131,6 @@ namespace simulator
                 Simulator.Links.Add(reverse_link.name, reverse_link);
                 Simulator.LinksBySrcDest.Add(new Tuple<Node, Node>(from_node, to_node), forward_link);
                 Simulator.LinksBySrcDest.Add(new Tuple<Node, Node>(to_node, from_node), reverse_link);
-
-                // events for dynamic cost calculation
-                double calc_at = -frequency/5;
-                while (calc_at <= duration) {
-                    eqp.Add(calc_at, forward_link.CalculateCost());
-                    eqp.Add(calc_at, reverse_link.CalculateCost());
-                    calc_at += frequency/5;
-                }
                 
                 Console.WriteLine("Initialized link {0}", link_name);
             }
