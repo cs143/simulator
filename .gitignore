@@ -1,6 +1,7 @@
 simulator.exe
 bin/
 obj/
+Pictures/
 SimGrapher/obj
 *.userprefs
 *.pidb
