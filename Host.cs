@@ -18,7 +18,7 @@ public class Host : Node
     public FlowReceive flow_rec_stat = new FlowReceive();
     public HostStatus hStat = new HostStatus();
     #endregion
-
+    
     #region SENDER SPECIFIC
     public double window_size { get; protected set; }
     private Int64 bits_to_send = 0;
@@ -31,13 +31,12 @@ public class Host : Node
     // used in `CheckTimeout` we use this attr to 
     // ignore the timers set before window size reset
     private int window_resets = 0;
-
+    
     private TCPStrategy tcp_strat;
     private bool is_busy = false;
     #endregion
-
+    
     #region PUBLIC METHODS
-    /* Initializer */
     public Host(EventQueueProcessor eqp, IP ip) : base(eqp, ip) {
         this.hStat.host_name = ip;
         this.hStat.flows = new FlowStatus[1];
@@ -65,8 +64,8 @@ public class Host : Node
             }
         };
     }
-
-    /* Sets up events that start flow */
+    
+    /// Sets up events that start flow
     public Event SetupSend(IP ip, Int64 bits_to_send, string algo) {
         return () => {
             this.bits_to_send = bits_to_send;
@@ -81,23 +80,23 @@ public class Host : Node
             eqp.Add(eqp.current_time, SendPacket());
         };
     }
-
+    
     public override string ToString() {
         return string.Format("<Host ip={0} window_size={2:0.00} seq_num={3} ack_num={4} bits_to_send={5}>",
             ip, null, window_size, next_seq_num, ack_num, bits_to_send);
     }
     #endregion
-
+    
     #region PRIVATE METHODS THAT DO NOT USE TCP STRATEGY
     private Event SendPacket() {
         return () => {
             if (HasPacketsToSend() && !is_busy) _SendPacket();
         };
     }
-
-    // Checks if the host has packets to send.
-    // Return true if there are more bits to send and the window size is greater
-    // than the number of unacknowledged packets
+    
+    /// <summary>Checks if the host has packets to send.</summary>
+    /// <returns><c>true</c> if there are more bits to send and the window size is greater
+    /// than the number of unacknowledged packetsthis instance has packets to send.</returns>
     private bool HasPacketsToSend() {
         if (this.next_seq_num * Packet.DEFAULT_PAYLOAD_SIZE < this.bits_to_send &&
             this.next_seq_num - this.ack_num < this.window_size) {
@@ -105,8 +104,8 @@ public class Host : Node
         }
         return false;
     }
-
-    // Sends a packet and registers timeout
+    
+    /// Sends a packet and registers timeout
     private void _SendPacket() {
         var packet = new Packet{
             payload_size=Packet.DEFAULT_PAYLOAD_SIZE,
@@ -127,16 +126,16 @@ public class Host : Node
         hStat.flows[0].packets_sent++;
         //Logger.LogHostStatus(hStat);
     }
-
-    // set busy flag to false, and try to send another packet
+    
+    /// set busy flag to false, and try to send another packet
     private Event CompleteSend() {
         return () => {
             is_busy = false;
             eqp.Add(eqp.current_time, SendPacket());
         };
     }
-
-    // update window size every 20ms. only for Fast TCP
+    
+    /// update window size every 20ms. only for Fast TCP
     private Event UpdateWindowSize() {
         return () => {
             tcp_strat.UpdateWindowSize();
@@ -146,8 +145,8 @@ public class Host : Node
             }
         };
     }
-
-    // return ack packet for a data packet
+    
+    /// return ack packet for a data packet
     private void ProcessDataPacket(Packet packet) {
         if (packet.seq_num == expected_seq_num) {
             expected_seq_num++;
@@ -163,10 +162,10 @@ public class Host : Node
         eqp.Add(eqp.current_time, link.EnqueuePacket(ack_p));
         this.flow_rec_stat.received_packets++;
     }
-
-    // update the packet delay after every packet
-    // used for packet delay analysis
+    
     private double update_rate = 0.5;
+    /// Update the packet delay after every packet.
+    /// Used for packet delay analysis
     private void UpdatePacketDelay(double delay) {
         if (packet_delay == 0) {
             packet_delay = 0;
@@ -175,9 +174,9 @@ public class Host : Node
         this.flow_rec_stat.packet_delay = packet_delay;
     }
     #endregion
-
+    
     #region PRIVATE METHODS THAT USE TCP STRATEGY
-    // Process ack packet if it lies on unacknowledged window
+    /// Process ack packet if it lies on unacknowledged window
     private void ProcessACKPacket(Packet packet) {
         if (packet.seq_num >= ack_num && packet.seq_num <= next_seq_num) {
             this.tcp_strat.ProcessAck(packet, eqp.current_time);
@@ -192,7 +191,7 @@ public class Host : Node
         eqp.Add(eqp.current_time, SendPacket());
     }
     
-    // If the packet lies inside the unacknowledged window process the timeout
+    /// If the packet lies inside the unacknowledged window, process the timeout
     private Event CheckTimeout(Packet packet, int resets) {
         return () => {
             if (packet.seq_num >= ack_num &&
@@ -208,7 +207,7 @@ public class Host : Node
         };
     }
     
-    // updates host parameters
+    /// updates host parameters
     private void UpdateTCPState() {
         this.window_size = this.tcp_strat.WindowSize();
         this.timeout = this.tcp_strat.Timeout();
