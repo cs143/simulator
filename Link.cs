@@ -69,7 +69,7 @@ public class Link {
                 TransmitPacket(packet);
                 //Simulator.Message(name + ":transmitting " + packet);
             }
-            else if (this.buffer.Sum(pkt => pkt.size) < this.buffer_size)
+            else if (this.buffer.Sum(pkt => pkt.size) + packet.size < this.buffer_size)
             {
                 this.buffer.Enqueue(packet);
                 //Simulator.Message(name + ":queueing " + packet);
