@@ -46,7 +46,8 @@ namespace simulator
             Console.WriteLine("Log written to \"{0}\"", LogFilePath);
         }
         /// <summary>
-        /// Reads the specified config file and instantiates the objects it defines.
+        /// Reads the specified config file and builds the network graph,
+        /// setting config parameters and instantiating the objects the config file defines.
         /// </summary>
         private static void Init(string configFileName)
         {

@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 namespace simulator {
-
+/// <summary>
+/// Represents a physical link between two nodes, as well as the send buffer for that link.  
+/// Handles buffering, packet dropping and link cost calculation.
+/// </summary>
 public class Link {
     public readonly EventQueueProcessor eqp;
     public readonly Node src;
@@ -11,10 +14,9 @@ public class Link {
     /// <summary>Link rate, in bit/s</summary>
     public readonly double rate;
     public double cost;
-
+    
     private long prev_delivered_packets = 0;
     private double prev_calc_time = -10000;
-
     /// <summary>
     /// Recalculates this link's cost dynamically, considering load information over the preceding time period.
     /// </summary>
@@ -29,7 +31,7 @@ public class Link {
         
         return cost;
     }
-
+    
     public readonly double prop_delay;
     public string name;
     /// <summary>Buffer capacity in bits</summary>
@@ -59,7 +61,7 @@ public class Link {
         this.is_transmitting = false;
         this.buffer = new Queue<Packet>();
     }
-
+    
     /// <summary>
     /// The event where the Link stores the packet in the send buffer (or discards it if the buffer is full).
     /// </summary>
@@ -124,7 +126,6 @@ public class Link {
     public override string ToString() {
         return string.Format("<Link name={3} ({4}→{0}) rate={1} prop_delay={2}>", dest, rate, prop_delay, name, src);
     }
-
 }
 
 }
