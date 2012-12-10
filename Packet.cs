@@ -20,13 +20,13 @@ public enum PacketType {
 
 public struct Packet {
     #region Common fields
-    public int payload_size;
-    /// <summary>Node that created this packet</summary>
+    /// <summary>Specifies Node that created this packet</summary>
     public IP src;
     public PacketType type;
     /// Sequence number for this packet. Meaning is dependent on the type (TCP or link-state packets).
     public int seq_num;
-    public double timestamp;// = -1; // Timestamp which will be used for roundtrip measurement (for convenience)
+    /// Timestamp which will be used for roundtrip measurement (for convenience)
+    public double timestamp;
     #endregion
     
     #region Fields used by TCP (ACK and DATA packets)
@@ -49,13 +49,14 @@ public struct Packet {
     public static readonly int DEFAULT_ACK_SIZE = 8*64;
     public static readonly int LINK_STATE_ADVERTISEMENT_SIZE = 0 /*make sure routing packets can always fit in buffer => never get dropped*/;
     /// <value>
-    /// Total size of packet, including headers and payload
+    /// Total size of packet, including headers and payload, in bits
     /// </value>
     public int size {
         get {
             return payload_size + Packet.HEADER_SIZE;
         }
     }
+    public int payload_size;
     #endregion
     
     public override string ToString() {

@@ -9,6 +9,9 @@ namespace simulator {
 
 public class EventQueueProcessor
 {
+    /// <value>
+    /// Current time in seconds
+    /// </value>
     public Time current_time { get; protected set; }
     public Time total_time = 0;
     private PriorityQueue<Time, Event> queue = new PriorityQueue<Time, Event>();

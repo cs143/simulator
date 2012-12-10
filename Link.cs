@@ -8,6 +8,7 @@ public class Link {
     public readonly EventQueueProcessor eqp;
     public readonly Node src;
     public readonly Node dest;
+    /// <summary>Link rate, in bit/s</summary>
     public readonly double rate;
     public double cost;
 
@@ -31,6 +32,7 @@ public class Link {
 
     public readonly double prop_delay;
     public string name;
+    /// <summary>Buffer capacity in bits</summary>
     public Int64 buffer_size;
     /// <summary>Whether the Link is currently transmitting a packet</summary>
     private bool is_transmitting;
