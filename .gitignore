@@ -1,6 +1,7 @@
 simulator.exe
 bin/
 obj/
+Pictures/
 SimGrapher/obj
 *.userprefs
 *.pidb
@@ -12,5 +13,3 @@ SimGrapher/obj
 log.txt
 log.xml
 *.suo
-config.xml
-config2.xml
