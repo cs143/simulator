@@ -171,7 +171,7 @@ namespace simulator
         /// <param name='g'>Message to print</param>
         public static void Message(string format, params Object[] args)
         {
-            System.Console.Write("[t={0}] ", eqp.current_time);
+            System.Console.Write("[t={0,7:0.0000}] ", eqp.current_time);
             System.Console.WriteLine(format, args);
         }
     }

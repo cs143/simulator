@@ -38,6 +38,12 @@ public class Link {
     private bool is_transmitting;
     public LinkStatus lStatus;
     public Queue<Packet> buffer;
+    /// <value>Current buffer occupancy in bits</value>
+    private Int64 buffer_occupancy {
+        get {
+            return this.buffer.Sum(pkt => (Int64)pkt.size);
+        }
+    }
     public Link(EventQueueProcessor eqp, string name, Node src, Node dest, double rate, double prop_delay, Int64 buffer_size) {
         this.eqp = eqp;
         this.src = src;
@@ -71,7 +77,7 @@ public class Link {
                 TransmitPacket(packet);
                 //Simulator.Message(name + ":transmitting " + packet);
             }
-            else if (this.buffer.Sum(pkt => pkt.size) + packet.size < this.buffer_size)
+            else if (this.buffer_occupancy + packet.size < this.buffer_size)
             {
                 this.buffer.Enqueue(packet);
                 //Simulator.Message(name + ":queueing " + packet);
@@ -79,7 +85,11 @@ public class Link {
             else
             {
                 this.lStatus.dropped_packets++;
-                Simulator.Message("dropping " + packet);
+                Simulator.Message("Link {0}: buffer {1}/{2}; dropping {3}",
+                    this.name,
+                    this.buffer_occupancy,
+                    this.buffer_size,
+                    packet);
             }
             //Logger.LogLinkStatus(lStatus);
         };
