@@ -30,12 +30,12 @@
   </Links>
   </Topology>
   <Flows>
-    <Flow name="F1" from="S1" to="T1" pkt_count="350000000" start_time="0" algorithm="reno"/>
-    <Flow name="F2" from="S2" to="T2" pkt_count="150000000" start_time="10" algorithm="reno"/>
-    <Flow name="F3" from="S3" to="T3" pkt_count="300000000" start_time="20" algorithm="reno"/>
+    <Flow name="F1" from="S1" to="T1" pkt_count="350000000" start_time="0" algorithm="fasttcp"/>
+    <Flow name="F2" from="S2" to="T2" pkt_count="150000000" start_time="10" algorithm="fasttcp"/>
+    <Flow name="F3" from="S3" to="T3" pkt_count="300000000" start_time="20" algorithm="fasttcp"/>
   </Flows>
-  <LogFilePath path="log.xml" />
+  <LogFilePath path="logs/TestCase2_fast.log.xml" />
   <Routing duration="200" frequency="5" />
-  <TotalTime>130</TotalTime>
-  <SampleRate>5</SampleRate>
+  <TotalTime>70</TotalTime>
+  <SampleRate>2</SampleRate>
 </Simulator>
