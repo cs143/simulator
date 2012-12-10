@@ -46,10 +46,10 @@ public class Host : Node
         this.hStat.flows[0].packets_sent = 0;
         this.flow_rec_stat.flow_name = "";
     }
-
-    /* Main receive event */
+    
     Random r = new Random();
     int randomized = 0;
+    /// <returns>Main receive event</returns>
     public override Event ReceivePacket(Packet packet) {
         return () => {
             switch(packet.type) {
@@ -113,7 +113,6 @@ public class Host : Node
             seq_num=this.next_seq_num,
             timestamp = eqp.current_time
         };
-        //Simulator.Message(name+":"+eqp.current_time+": Sending " + packet);
         double completion_time = eqp.current_time + packet.size / link.rate;
         eqp.Add(eqp.current_time, link.EnqueuePacket(packet));
         is_busy = true;
@@ -183,18 +182,18 @@ public class Host : Node
             }
         }
         else {
-            Simulator.Message(eqp.current_time + ": Dropping ack" + packet);
+            Simulator.Message("Host {0} dropping ack {1}", this.ip, packet);
         }
         eqp.Add(eqp.current_time, SendPacket());
     }
-
+    
     private Event CheckTimeout(Packet packet, int resets) {
         return () => {
             if (packet.seq_num >= ack_num &&
                 packet.seq_num < next_seq_num &&
                 window_resets == resets) {
                 // timed out
-                Simulator.Message(eqp.current_time + "TIMED OUT " + packet);
+                Simulator.Message("Host {0}: packet timed out: {1}", this.ip, packet);
                 window_resets++;
                 this.tcp_strat.ProcessTimeout(packet, eqp.current_time);
                 UpdateTCPState();
@@ -202,7 +201,7 @@ public class Host : Node
             }
         };
     }
-
+    
     // updates host parameters
     private void UpdateTCPState() {
         this.window_size = this.tcp_strat.WindowSize();
@@ -211,7 +210,6 @@ public class Host : Node
         if (this.tcp_strat.ResetSeq()) {
             this.next_seq_num = this.ack_num;
         }
-        //Simulator.Message(ip + ":" + eqp.current_time + "\t" + window_size + "\t" + this.tcp_strat);
     }
     #endregion
     

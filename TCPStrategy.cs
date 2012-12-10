@@ -60,7 +60,7 @@ public class TCPReno : TCPStrategy {
                 // time for congestion avoidance
                 slow_start = false;
                 reset_seq = true;
-                System.Console.WriteLine("CA:" + this);
+                Simulator.Message(this + ": TCP mode = CA");
             }
             else {
                 this.dup_cnt = 0;
@@ -68,7 +68,7 @@ public class TCPReno : TCPStrategy {
                     window_size++;
                     if (window_size > slow_start_thresh) {
                         slow_start = false;
-                        System.Console.WriteLine("SS to CA :" + this);
+                        Simulator.Message(this + ": Switching from SS to CA");
                     }
                 } else { // Congestion Avoidance
                     window_size += 1/window_size;
@@ -83,7 +83,7 @@ public class TCPReno : TCPStrategy {
                 window_size = 1; // effectively resends a single packet
                 slow_start = false;
                 reset_seq = true;
-                System.Console.WriteLine("FAST TRANSMIT:" + this);
+                Simulator.Message(this + ": FAST TRANSMIT");
             }
             else {
                 //window_size++;
@@ -106,7 +106,7 @@ public class TCPReno : TCPStrategy {
         }
         reset_seq = true;
         slow_start = true;
-        System.Console.WriteLine("SS:" + this);
+        Simulator.Message("SS:" + this);
     }
 
     private void AdjustTimeout(Time rt, bool reset) {

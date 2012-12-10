@@ -107,7 +107,7 @@ public class Router : Node
         /// </summary>
         public void Send(Packet pkt) {
             if(!already_seen.Contains(pkt)) {
-                Simulator.Message("Sending link-state packet {0} on links {1}", pkt, outgoing_links.ToDelimitedString());
+                // Simulator.Message("Sending link-state packet {0} on links {1}", pkt, outgoing_links.ToDelimitedString());
                 foreach(Link l in outgoing_links)
                     eqp.Add(eqp.current_time, l.EnqueuePacket(pkt));
                 already_seen.Add(pkt);
@@ -119,8 +119,8 @@ public class Router : Node
     /// <summary>Recalculates the routing table if we know the latest link costs for all links, and it's not already been updated on this round. Otherwise does nothing.<c/summary>
     private void RecalculateRoutingTableIfEnoughInfo() {
         if(!routing_table_up_to_date) {
-            Simulator.Message("{0}: known link costs: {1}", this.ip, known_link_costs.ToDelimitedString());
-            Simulator.Message("{0}: not known: {1}", this.ip, Simulator.Links.Values.Except(known_link_costs.Keys).ToDelimitedString());
+            // Simulator.Message("{0}: known link costs: {1}", this.ip, known_link_costs.ToDelimitedString());
+            // Simulator.Message("{0}: not known: {1}", this.ip, Simulator.Links.Values.Except(known_link_costs.Keys).ToDelimitedString());
             if(new HashSet<Link>(known_link_costs.Keys).IsSupersetOf(Simulator.Links.Values))
                 RecalculateRoutingTable();
         }
@@ -132,7 +132,7 @@ public class Router : Node
     /// The advertisement will be forwarded on all outgoing links (if not already done).
     /// </summary>
     private void ProcessLinkStateAdvertisement(Packet pkt) {
-        Simulator.Message("Router {0} received link-state packet for link {1}", this.ip, pkt);
+        // Simulator.Message("Router {0} received link-state packet for link {1}", this.ip, pkt);
         Debug.Assert(pkt.seq_num <= this.routing_seq_num);
         if(pkt.seq_num == this.routing_seq_num) { // packet describes current round
             Link described_link = Simulator.LinksBySrcDest[Tuple.Create(Simulator.Nodes[pkt.src], Simulator.Nodes[pkt.link_dest])];
