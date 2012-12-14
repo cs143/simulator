@@ -22,19 +22,11 @@ namespace simulator
         public static string LogFilePath;
         static int Main(string[] args)
         {
-            string configFileName = "";
-            if (args.Length != 1)
-            {
-                //Console.WriteLine(Usage(process_name: System.AppDomain.CurrentDomain.FriendlyName));
-                //return 1;
-                Console.WriteLine("Enter the config file path => ");
-                configFileName = Console.ReadLine();
+            if(args.Length != 1) {
+                Console.WriteLine(Usage(process_name: System.AppDomain.CurrentDomain.FriendlyName));
+                return 1;
             }
-            else
-            {
-                configFileName = args[0];
-            }
-            RunSimulation(configFileName);
+            RunSimulation(configFileName: args[0]);
             return 0;
         }
         public static string Usage(string process_name)
@@ -52,8 +44,6 @@ namespace simulator
             Console.WriteLine("=============== Done ===============");
             Logger.CloseLogFile();
             Console.WriteLine("Log written to \"{0}\"", LogFilePath);
-            Console.WriteLine("Press any key to continue => ");
-            Console.ReadLine();
         }
         /// <summary>
         /// Reads the specified config file and builds the network graph,
