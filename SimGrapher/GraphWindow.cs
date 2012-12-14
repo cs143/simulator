@@ -18,7 +18,6 @@ namespace SimGrapher
         public PointPairList plist;
         public PointPairList flow_rate_list;
         public PointPairList send_rate_list;
-        public PointPairList packet_delay_list;
     }
     public struct Link
     {
@@ -44,7 +43,6 @@ namespace SimGrapher
             CreateWindowSizeChart(zedGraphControl1,wSizeList);
             CreateFlowRateChart(zedGraphControl5, wSizeList);
             CreateSendRateChart(zedGraphControl6, wSizeList);
-            CreatePacketDelayChart(zedGraphControl7, wSizeList);
             Link[] linkStatList = GetLinkStatusList(xmlDoc);
             CreateDroppedPacketChart(zedGraphControl2, linkStatList);
             CreateBufferSizeChart(zedGraphControl3, linkStatList);
@@ -119,8 +117,6 @@ namespace SimGrapher
                                    buff_size = Convert.ToDouble(item.Descendants("buffer_occupancy").First().Value)
                                };
                 double prev_time = 0.0;
-                double point_count = 0.0;
-                double buff_tot = 0.0;
                 foreach (var next_stat in lstat_item)
                 {
                     double x = (double) next_stat.time;
@@ -132,23 +128,11 @@ namespace SimGrapher
                     lastDpCount = (double)next_stat.dp_count;
                     lastDelCount = (double)next_stat.lr_count;
                     prev_time = (double)next_stat.time;
-                    point_count++;
-                    buff_tot += (double)next_stat.buff_size;
                 }
                 int newCount = dataGridLinks.Rows.Add();
                 dataGridLinks.Rows[newCount].Cells[0].Value = link;
                 double avgLoss = lastDpCount / prev_time;
-                dataGridLinks.Rows[newCount].Cells["AvgLoss"].Value = Math.Round(avgLoss,2);
-                double mean_buff_size = buff_tot / point_count;
-                dataGridLinks.Rows[newCount].Cells["AvgOccup"].Value =Math.Round(mean_buff_size,2);
-                double sum_of_squares = 0.0;
-                foreach (var next_stat in lstat_item)
-                {
-                    double difference = (double)next_stat.buff_size - mean_buff_size;
-                    sum_of_squares += difference * difference;
-                }
-                double var_buff_size = sum_of_squares/point_count;
-                dataGridLinks.Rows[newCount].Cells["VarOccup"].Value = Math.Round(var_buff_size, 2);
+                dataGridLinks.Rows[newCount].Cells["AvgLoss"].Value = avgLoss;
                 count++;
             }
             return list;
@@ -179,15 +163,13 @@ namespace SimGrapher
                                      sent_packets = item.Attribute("packets_sent")
                                  };
                 list[count].flow_rate_list = new PointPairList();
-                list[count].packet_delay_list = new PointPairList();
                 var rec_item = from item in xmlDoc.Descendants("FlowReceive")
                                  where item.Attribute("flow_name").Value == flow
                                  orderby (double)item.Attribute("time")
                                  select new
                                  {
                                      time = item.Attribute("time"),
-                                     rec_count = item.Descendants("received_packets").First(),
-                                     avg_delay = item.Attribute("packet_delay")
+                                     rec_count = item.Descendants("received_packets").First()
                                  };
 
                 #region obsolete
@@ -233,28 +215,16 @@ namespace SimGrapher
                 }
                 prev_time = 0.0;
                 prev_count = 0.0;
-                double first_non_zero = -1;
-                double last_non_zero = -1;
-                double packet_delay_tot = 0.0;
                 foreach (var pt2 in rec_item)
                 {
                     double x = (double)pt2.time;
                     double y = ((double)pt2.rec_count - prev_count) / (125*((double)pt2.time - prev_time));
-                    if (y > 0)
-                    {
-                        if (first_non_zero == -1) first_non_zero = x;
-                        last_non_zero = x;
-                    }
                     list[count].flow_rate_list.Add(x, y);
-                    list[count].packet_delay_list.Add(x, (double)pt2.avg_delay);
                     prev_time = x;
                     prev_count = (double)pt2.rec_count;
-                    packet_delay_tot += (double)pt2.avg_delay;
                 }
                 int newRowCount = dataGridFlows.Rows.Add();
                 dataGridFlows.Rows[newRowCount].Cells[0].Value = flow;
-                dataGridFlows.Rows[newRowCount].Cells["AvgThroughput"].Value = Math.Round(prev_count /(125* (last_non_zero - first_non_zero)),2);
-                dataGridFlows.Rows[newRowCount].Cells["AvgDelay"].Value = Math.Round(packet_delay_tot /(double)rec_item.Count(), 2);
                 count++;
             }
             return list;
@@ -321,6 +291,7 @@ namespace SimGrapher
         {
             GraphPane myPane = zgc.GraphPane;
             System.Drawing.Color[] GraphColors = { Color.Red, Color.Blue, Color.Green, Color.Orange, Color.Purple, Color.Brown };
+            ZedGraph.SymbolType[] GraphSymbols = { SymbolType.Circle, SymbolType.Diamond, SymbolType.TriangleDown, SymbolType.Square, SymbolType.Star, SymbolType.Triangle };
             // Set the titles and axis labels
             myPane.Title.Text = "";
             myPane.XAxis.Title.Text = "Time, s";
@@ -368,37 +339,6 @@ namespace SimGrapher
             }*/
             #endregion
 
-            // Leave some extra space on top for the labels to fit within the chart rect
-            myPane.YAxis.Scale.MaxGrace = 0.2;
-
-            // Calculate the Axis Scale Ranges
-            zgc.AxisChange();
-        }
-        public void CreatePacketDelayChart(ZedGraphControl zgc, Flow[] list)
-        {
-            GraphPane myPane = zgc.GraphPane;
-            System.Drawing.Color[] GraphColors = { Color.Red, Color.Blue, Color.Green, Color.Orange, Color.Purple, Color.Brown };
-            // Set the titles and axis labels
-            myPane.Title.Text = "";
-            myPane.XAxis.Title.Text = "Time, s";
-            myPane.YAxis.Title.Text = "Packet delay (s)";
-
-            /*myPane.Legend.Position = LegendPos.Float;
-            myPane.Legend.Location = new Location(0.95, 0.15, CoordType.PaneFraction,
-                                 AlignH.Right, AlignV.Top);
-            myPane.Legend.FontSpec.Size = 10;*/
-            myPane.Legend.Position = LegendPos.InsideTopLeft;
-            // Add a curve
-            for (int k = 0; k < list.Length; k++)
-            {
-                LineItem curve = myPane.AddCurve(list[k].name, list[k].packet_delay_list, GraphColors[k % 6], SymbolType.None);
-                curve.Line.Width = 2.0F;
-                curve.Line.IsAntiAlias = true;
-                curve.Symbol.Fill = new Fill(Color.White);
-                curve.Symbol.Size = 7;
-            }
-            // Fill the axis background with a gradient
-            //myPane.Chart.Fill = new Fill(Color.White, Color.FromArgb(255, Color.ForestGreen), 45.0F);
             // Leave some extra space on top for the labels to fit within the chart rect
             myPane.YAxis.Scale.MaxGrace = 0.2;
 

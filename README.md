@@ -21,15 +21,15 @@ On Linux & OS X
 
 On Windows
 
-  1. Open simulator.csproj in Visual Studio
-  2. Choose Start Debugging from Debug menu, or just build and run
+  1. setup visual studio project
+  2. compile and run
 
 Running Log Analyzer
 --------------------
 
 On Windows
 
-  1. Compile and run SimGrapher.csproj
+  1. ?
   2. select a logfile
 
 Some Stats

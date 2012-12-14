@@ -41,7 +41,6 @@
             this.AvgLoss = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.AvgOccup = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.VarOccup = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.zedGraphControl7 = new ZedGraph.ZedGraphControl();
             this.FlowName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.AvgThroughput = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.AvgDelay = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -168,7 +167,7 @@
             this.AvgLoss,
             this.AvgOccup,
             this.VarOccup});
-            this.dataGridLinks.Location = new System.Drawing.Point(13, 1300);
+            this.dataGridLinks.Location = new System.Drawing.Point(677, 1115);
             this.dataGridLinks.Name = "dataGridLinks";
             this.dataGridLinks.Size = new System.Drawing.Size(621, 150);
             this.dataGridLinks.TabIndex = 7;
@@ -193,22 +192,6 @@
             this.VarOccup.HeaderText = "Buffer Occupancy Variance";
             this.VarOccup.Name = "VarOccup";
             // 
-            // zedGraphControl7
-            // 
-            this.zedGraphControl7.AutoSize = true;
-            this.zedGraphControl7.Location = new System.Drawing.Point(677, 1119);
-            this.zedGraphControl7.Name = "zedGraphControl7";
-            this.zedGraphControl7.Padding = new System.Windows.Forms.Padding(0, 0, 0, 10);
-            this.zedGraphControl7.ScrollGrace = 0D;
-            this.zedGraphControl7.ScrollMaxX = 0D;
-            this.zedGraphControl7.ScrollMaxY = 0D;
-            this.zedGraphControl7.ScrollMaxY2 = 0D;
-            this.zedGraphControl7.ScrollMinX = 0D;
-            this.zedGraphControl7.ScrollMinY = 0D;
-            this.zedGraphControl7.ScrollMinY2 = 0D;
-            this.zedGraphControl7.Size = new System.Drawing.Size(621, 328);
-            this.zedGraphControl7.TabIndex = 8;
-            // 
             // FlowName
             // 
             this.FlowName.HeaderText = "Flow Name";
@@ -216,7 +199,7 @@
             // 
             // AvgThroughput
             // 
-            this.AvgThroughput.HeaderText = "Avg Throughput (Mbps)";
+            this.AvgThroughput.HeaderText = "Avg Throughput";
             this.AvgThroughput.Name = "AvgThroughput";
             // 
             // AvgDelay
@@ -231,7 +214,6 @@
             this.AutoScroll = true;
             this.AutoScrollMargin = new System.Drawing.Size(10, 10);
             this.ClientSize = new System.Drawing.Size(1342, 753);
-            this.Controls.Add(this.zedGraphControl7);
             this.Controls.Add(this.dataGridLinks);
             this.Controls.Add(this.dataGridFlows);
             this.Controls.Add(this.zedGraphControl6);
@@ -262,14 +244,13 @@
         private ZedGraph.ZedGraphControl zedGraphControl6;
         private System.Windows.Forms.DataGridView dataGridFlows;
         private System.Windows.Forms.DataGridView dataGridLinks;
+        private System.Windows.Forms.DataGridViewTextBoxColumn FlowName;
+        private System.Windows.Forms.DataGridViewTextBoxColumn AvgThroughput;
+        private System.Windows.Forms.DataGridViewTextBoxColumn AvgDelay;
         private System.Windows.Forms.DataGridViewTextBoxColumn LinkName;
         private System.Windows.Forms.DataGridViewTextBoxColumn AvgLoss;
         private System.Windows.Forms.DataGridViewTextBoxColumn AvgOccup;
         private System.Windows.Forms.DataGridViewTextBoxColumn VarOccup;
-        private ZedGraph.ZedGraphControl zedGraphControl7;
-        private System.Windows.Forms.DataGridViewTextBoxColumn FlowName;
-        private System.Windows.Forms.DataGridViewTextBoxColumn AvgThroughput;
-        private System.Windows.Forms.DataGridViewTextBoxColumn AvgDelay;
     }
 }
 

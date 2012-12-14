@@ -1,6 +1,4 @@
-﻿/* This class contains all methods for generating the log file, which is used in analytics.  It defines a "status" struct for the key actors (Host, Link) and logs them using 
- * XML serialization.  It also contains a test method to generate a test log file. */﻿
-using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,10 +9,6 @@ namespace simulator
 {
     public class LogCreator<EntryType>
     {
-        /// <summary>
-        /// Used to create a log entry for a given serializable object.  Uses generics to specify the type.
-        /// </summary>
-        /// <param name="entry"></param>
         public void LogEntry(EntryType entry)
         {
             XmlSerializer xml = new XmlSerializer(typeof(EntryType));
@@ -69,10 +63,6 @@ namespace simulator
                 asw.WriteLine("</Logging>");
                 asw.Close();
         }
-        /// <summary>
-        /// This method is called as often as specified by the "SampleRate" config, and calls the individual log methods for every link and host.
-        /// </summary>
-        /// <returns></returns>
         public static Event LogEverything()
         {
             return () =>
@@ -132,9 +122,6 @@ namespace simulator
             }
         }
     }
-    /// <summary>
-    /// Data we want to keep track of for each flow.
-    /// </summary>
     public struct FlowStatus
     {
         [XmlAttribute]
@@ -153,9 +140,6 @@ namespace simulator
             set { }
         }
     }
-    /// <summary>
-    /// Tracked data per flow that is only known by the receiver.
-    /// </summary>
     public struct FlowReceive
     {
         [XmlAttribute]
@@ -174,18 +158,13 @@ namespace simulator
         [XmlAttribute]
         public double packet_delay;
     }
-    /// <summary>
-    /// Tracked data per host.
-    /// </summary>
+
     public struct HostStatus
     {
         [XmlAttribute]
         public string host_name;
         public FlowStatus[] flows;
     }
-    /// <summary>
-    /// Tracked data per link
-    /// </summary>
     public class LinkStatus
     {
         [XmlIgnore]
