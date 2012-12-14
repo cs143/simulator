@@ -19,22 +19,51 @@ namespace simulator
         public static Dictionary<Tuple<Node, Node>, Link> LinksBySrcDest;
         public static Dictionary<IP, Router> Routers;
         public static Dictionary<IP, Node> Nodes;
-        public static string LogFilePath = "";
-        static void Main()
+        public static string LogFilePath;
+        static int Main(string[] args)
         {
-            Init();
-            eqp.Execute();
-            Console.WriteLine("Press enter to continue => ");
-            Console.ReadLine();
-            Logger.CloseLogFile();
+            string configFileName = "";
+            if (args.Length != 1)
+            {
+                //Console.WriteLine(Usage(process_name: System.AppDomain.CurrentDomain.FriendlyName));
+                //return 1;
+                Console.WriteLine("Enter the config file path => ");
+                configFileName = Console.ReadLine();
+            }
+            else
+            {
+                configFileName = args[0];
+            }
+            RunSimulation(configFileName);
+            return 0;
         }
-        public static void Init()
+        public static string Usage(string process_name)
+        {
+            return string.Format("Usage: {0} {1}", process_name, "config_file.xml");
+        }
+        public static void RunSimulation(string configFileName)
+        {
+            Console.WriteLine("CS 143 Network Simulator");
+            Console.WriteLine("=========== Initializing ===========");
+            Init(configFileName);
+            Logger.InitLogFile();
+            Console.WriteLine("======== Running simulation ========");
+            eqp.Execute();
+            Console.WriteLine("=============== Done ===============");
+            Logger.CloseLogFile();
+            Console.WriteLine("Log written to \"{0}\"", LogFilePath);
+            Console.WriteLine("Press any key to continue => ");
+            Console.ReadLine();
+        }
+        /// <summary>
+        /// Reads the specified config file and builds the network graph,
+        /// setting config parameters and instantiating the objects the config file defines.
+        /// </summary>
+        private static void Init(string configFileName)
         {
             XmlDocument xmlDoc = new XmlDocument();
-            Console.WriteLine("Enter the path to the configuration file (default = config.xml) =>");
-            string fileName = Console.ReadLine();
-            if (fileName == "" || fileName == null) fileName = "./config.xml";
-            xmlDoc.Load(fileName);
+            if (configFileName == "" || configFileName == null) configFileName = "./config.xml";
+            xmlDoc.Load(configFileName);
             #region Nodes
             #region Populate Hosts
             Simulator.Hosts = new Dictionary<string, Host>();
@@ -42,7 +71,7 @@ namespace simulator
             foreach (XmlNode hostNode in HostList)
             {
                 string hostName = hostNode.Attributes["name"].Value;
-                Console.WriteLine(hostName);
+                Console.WriteLine("Initializing host {0}", hostName);
                 Simulator.Hosts.Add(hostName, new Host(eqp, hostName));
             }
             #endregion
@@ -55,25 +84,26 @@ namespace simulator
             foreach (XmlNode router_node in router_list)
             {
                 string router_name = router_node.Attributes["name"].Value;
-                Console.WriteLine(router_name);
+                Console.WriteLine("Initializing router {0}", router_name);
                 simulator.Router r = new simulator.Router(eqp, router_name);
                 Simulator.Routers.Add(router_name, r);
-                // Calculate routing tables at least once before flows start; align to 0
-                double build_at = -frequency;
-                while (build_at <= duration) {
-                    eqp.Add(build_at, r.RecalculateRoutingTableEvent());
-                    build_at += frequency;
-                }
             }
             #endregion
             // TODO Is there a more elegant way to do this?
             Nodes = Hosts.Select(e => new KeyValuePair<IP, Node>(e.Key, e.Value))
                 .Concat(Routers.Select(e => new KeyValuePair<IP, Node>(e.Key, e.Value)))
                 .ToDictionary(pair => pair.Key, pair => pair.Value);
-                // ((IDictionary<IP, Node>)Hosts).Concat<Node>(Routers); // union
             
-            //.SelectMany(dict => dict)
-              //  .ToDictionary(pair => pair.Key, pair => pair.Value);
+            { // Calculate routing tables at least once before flows start; align to 0
+                double build_at = -frequency;
+                int seq_num = 0;
+                while (build_at <= duration) {
+                    foreach(Node node in Nodes.Values)
+                        eqp.Add(build_at, node.RecalculateLinkState(seq_num));
+                    build_at += frequency;
+                    seq_num++;
+                }
+            }
             #endregion
             #region Populate Links
             Simulator.Links = new Dictionary<string, Link>();
@@ -86,12 +116,12 @@ namespace simulator
                 string node_from_name = link_node.Attributes["from"].Value;
                 Node to_node = Simulator.Nodes[node_to_name];
                 Node from_node = Simulator.Nodes[node_from_name];
-                Link forward_link = new Link(eqp, link_name, to_node,
+                Link forward_link = new Link(eqp, link_name, from_node, to_node,
                     Convert.ToDouble(link_node.Attributes["rate"].Value),
                     Convert.ToDouble(link_node.Attributes["prop_delay"].Value),
                     Convert.ToInt64(link_node.Attributes["buffer_size"].Value));
                 from_node.RegisterLink(forward_link);
-                Link reverse_link = new Link(eqp, link_name + "_Reverse", from_node,
+                Link reverse_link = new Link(eqp, link_name + "_Reverse", to_node, from_node,
                     Convert.ToDouble(link_node.Attributes["rate"].Value),
                     Convert.ToDouble(link_node.Attributes["prop_delay"].Value),
                     Convert.ToInt64(link_node.Attributes["buffer_size"].Value));
@@ -101,19 +131,10 @@ namespace simulator
                 Simulator.Links.Add(reverse_link.name, reverse_link);
                 Simulator.LinksBySrcDest.Add(new Tuple<Node, Node>(from_node, to_node), forward_link);
                 Simulator.LinksBySrcDest.Add(new Tuple<Node, Node>(to_node, from_node), reverse_link);
-
-                // events for dynamic cost calculation
-                double calc_at = -frequency/5;
-                while (calc_at <= duration) {
-                    eqp.Add(calc_at, forward_link.CalculateCost());
-                    eqp.Add(calc_at, reverse_link.CalculateCost());
-                    calc_at += frequency/5;
-                }
                 
-                Console.WriteLine(link_name);
+                Console.WriteLine("Initialized link {0}", link_name);
             }
             #endregion
-
             #region Populate Flows
             XmlNodeList flow_list = xmlDoc.GetElementsByTagName("Flow");
             foreach (XmlNode flow_node in flow_list)
@@ -125,7 +146,7 @@ namespace simulator
                 flow_from_host.SetupSend(flow_to_host.ip, Convert.ToInt64(flow_node.Attributes["pkt_count"].Value), flow_node.Attributes["algorithm"].Value));
                 flow_from_host.hStat.flows[0].flow_name = flow_name;
                 flow_to_host.flow_rec_stat.flow_name = flow_name;
-                Console.WriteLine(flow_name);
+                Console.WriteLine("Initialized flow {0}", flow_name);
             }
             #endregion
             
@@ -153,10 +174,16 @@ namespace simulator
             }
             
             Console.WriteLine("Log File Path = " + LogFilePath);
-            Logger.InitLogFile();
-            Console.WriteLine("Press enter to continue => ");
-            Console.ReadLine();
-
+        }
+        
+        /// <summary>
+        /// Prints the specified message (for debugging purposes), with relevant information like the current time.
+        /// </summary>
+        /// <param name='g'>Message to print</param>
+        public static void Message(string format, params Object[] args)
+        {
+            System.Console.Write("[t={0,7:0.0000}] ", eqp.current_time);
+            System.Console.WriteLine(format, args);
         }
     }
 }

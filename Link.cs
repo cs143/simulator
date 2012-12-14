@@ -1,35 +1,54 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 namespace simulator {
-
+/// <summary>
+/// Represents a physical link between two nodes, as well as the send buffer for that link.  
+/// Handles buffering, packet dropping and link cost calculation.
+/// </summary>
 public class Link {
     public readonly EventQueueProcessor eqp;
+    public readonly Node src;
     public readonly Node dest;
+    /// <summary>Link rate, in bit/s</summary>
     public readonly double rate;
     public double cost;
-
+    
     private long prev_delivered_packets = 0;
     private double prev_calc_time = -10000;
-
-    public Event CalculateCost () {
-        return () => {
-            cost = buffer.Count * 8 * 1024 / rate + prop_delay;
-            //Console.WriteLine(this.name + ":" + cost);
-            prev_calc_time = eqp.current_time;
-            prev_delivered_packets = lStatus.delivered_packets;
-        };
+    /// <summary>
+    /// Recalculates this link's cost dynamically, considering load information over the preceding time period.
+    /// </summary>
+    /// <returns>
+    /// The calculated cost.
+    /// </returns>
+    public double CalculateCost() {
+        cost = buffer.Count * 8 * 1024 / rate + prop_delay;
+        Simulator.Message(this.name + "'s new cost = " + cost);
+        prev_calc_time = eqp.current_time;
+        prev_delivered_packets = lStatus.delivered_packets;
+        
+        return cost;
     }
-
+    
     public readonly double prop_delay;
     public string name;
+    /// <summary>Buffer capacity in bits</summary>
     public Int64 buffer_size;
     /// <summary>Whether the Link is currently transmitting a packet</summary>
     private bool is_transmitting;
     public LinkStatus lStatus;
     public Queue<Packet> buffer;
-    public Link(EventQueueProcessor eqp, string name, Node dest, double rate, double prop_delay, Int64 buffer_size) {
+    /// <value>Current buffer occupancy in bits</value>
+    private Int64 buffer_occupancy {
+        get {
+            return this.buffer.Sum(pkt => (Int64)pkt.size);
+        }
+    }
+    public Link(EventQueueProcessor eqp, string name, Node src, Node dest, double rate, double prop_delay, Int64 buffer_size) {
         this.eqp = eqp;
+        this.src = src;
         this.dest = dest;
         this.rate = rate;
         this.name = name;
@@ -42,7 +61,7 @@ public class Link {
         this.is_transmitting = false;
         this.buffer = new Queue<Packet>();
     }
-
+    
     /// <summary>
     /// The event where the Link stores the packet in the send buffer (or discards it if the buffer is full).
     /// </summary>
@@ -58,17 +77,21 @@ public class Link {
             if (!this.is_transmitting)
             {
                 TransmitPacket(packet);
-                //Console.WriteLine(name + ":transmitting " + packet);
+                //Simulator.Message(name + ":transmitting " + packet);
             }
-            else if (this.buffer.Count < this.buffer_size)
+            else if (this.buffer_occupancy + packet.size < this.buffer_size)
             {
                 this.buffer.Enqueue(packet);
-                //Console.WriteLine(name + ":queueing " + packet);
+                //Simulator.Message(name + ":queueing " + packet);
             }
             else
             {
                 this.lStatus.dropped_packets++;
-                Console.WriteLine("dropping " + packet);
+                Simulator.Message("Link {0}: buffer {1}/{2}; dropping {3}",
+                    this.name,
+                    this.buffer_occupancy,
+                    this.buffer_size,
+                    packet);
             }
             //Logger.LogLinkStatus(lStatus);
         };
@@ -93,7 +116,7 @@ public class Link {
             if (this.buffer.Count > 0)
             {
                 Packet nextPkt = this.buffer.Dequeue();
-                //Console.WriteLine(name + ":transmitting " + nextPkt);
+                //Simulator.Message(name + ":transmitting " + nextPkt);
                 TransmitPacket(nextPkt);
             }
             this.lStatus.delivered_packets++;
@@ -101,9 +124,8 @@ public class Link {
         };
     }
     public override string ToString() {
-        return string.Format("<Link dest={0} rate={1} prop_delay={2}>", dest, rate, prop_delay);
+        return string.Format("<Link name={3} ({4}→{0}) rate={1} prop_delay={2}>", dest, rate, prop_delay, name, src);
     }
-
 }
 
 }
