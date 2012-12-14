@@ -25,7 +25,7 @@
   <Flows>
     <Flow name="F1" from="S" to="T" pkt_count="160000000" start_time="10" algorithm="reno"/>
   </Flows>
-  <LogFilePath path="logs/TestCase1_reno.log.xml" />
+  <LogFilePath path="..\..\TestCase1_reno.log.xml" />
     <Routing duration="30" frequency="5" />
   <TotalTime>20</TotalTime>
   <SampleRate>4</SampleRate>

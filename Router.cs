@@ -51,7 +51,7 @@ public class Router : Node
     /// <summary>
     /// How many routing recalculations have been performed.
     /// </summary>
-    private int routing_seq_num;
+    private int routing_seq_num = -1;
     /// <summary>
     /// Link costs for routing_seq_num that this Router currently knows
     /// </summary>
