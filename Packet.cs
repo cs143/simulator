@@ -80,6 +80,7 @@ public struct Packet {
             payload_size=Packet.LINK_STATE_ADVERTISEMENT_SIZE,
             src=src.ip,
             link_dest=link.dest.ip,
+            link_cost=link.cost,
             type=PacketType.LINK_STATE_ADVERTISEMENT,
             seq_num=seq_num,
             timestamp=current_time
