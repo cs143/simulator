@@ -1,6 +1,6 @@
 CSC=dmcs
 
-all: Simulator.exe
+all: Simulator.exe run_all_test_cases
 	make -C SimGrapher simgrapher
 
 Simulator.exe: *.cs
@@ -12,3 +12,11 @@ Simulator.exe: *.cs
 
 runsimgrapher: all
 	mono ./SimGrapher/bin/Debug/SimGrapher.exe
+
+TEST_CASES=$(wildcard *.config.xml)
+TEST_CASE_OUTPUTS=$(patsubst %.config.xml,logs/%.log.xml,$(TEST_CASES))
+
+run_all_test_cases: $(TEST_CASE_OUTPUTS)
+
+logs/%.log.xml: %.config.xml Simulator.exe
+	mono Simulator.exe $<
